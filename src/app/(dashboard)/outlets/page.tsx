@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, Pencil, Plus, Store, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Smartphone, Store, Trash2 } from "lucide-react";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { OutletFormModal } from "@/components/outlets/OutletFormModal";
+import { OutletMpesaSettingsModal } from "@/components/outlets/OutletMpesaSettingsModal";
 import { api, ApiError } from "@/lib/api";
 import type { Outlet } from "@/lib/types";
 
@@ -16,6 +17,7 @@ export default function OutletsPage() {
   const [editingOutlet, setEditingOutlet] = useState<Outlet | null>(null);
   const [deletingOutlet, setDeletingOutlet] = useState<Outlet | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [mpesaOutlet, setMpesaOutlet] = useState<Outlet | null>(null);
 
   const loadAll = useCallback(async () => {
     setLoadError(null);
@@ -122,6 +124,15 @@ export default function OutletsPage() {
                         </button>
                         <button
                           type="button"
+                          onClick={() => setMpesaOutlet(outlet)}
+                          aria-label={`M-Pesa Till settings for ${outlet.name}`}
+                          title="M-Pesa Till settings"
+                          className="grid size-8 place-items-center border border-navy/15 text-navy/60 transition hover:bg-cream-dark hover:text-navy"
+                        >
+                          <Smartphone className="size-3.5" aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => setDeletingOutlet(outlet)}
                           aria-label={`Delete ${outlet.name}`}
                           className="grid size-8 place-items-center border border-navy/15 text-navy/60 transition hover:bg-red/10 hover:text-red"
@@ -139,6 +150,8 @@ export default function OutletsPage() {
       </div>
 
       <OutletFormModal open={formOpen} editingOutlet={editingOutlet} onClose={() => setFormOpen(false)} onSaved={handleSaved} />
+
+      <OutletMpesaSettingsModal open={mpesaOutlet !== null} outlet={mpesaOutlet} onClose={() => setMpesaOutlet(null)} />
 
       <ConfirmDialog
         open={deletingOutlet !== null}

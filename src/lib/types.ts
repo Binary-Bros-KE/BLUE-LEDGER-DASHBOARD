@@ -40,6 +40,32 @@ export type OutletCreateInput = {
 
 export type OutletUpdateInput = Partial<OutletCreateInput>;
 
+/** The Till this outlet's own tenants pay their software subscription/maintenance into — mirrors
+ * DESKTOP's per-storefront MpesaTillSettings shape exactly. */
+export type OutletMpesaSettings = {
+  id: string;
+  outletId: string;
+  environment: string;
+  consumerKey: string;
+  consumerSecret: string;
+  passkey: string;
+  shortcode: string;
+  tillNumber: string;
+  accountReference: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type OutletMpesaSettingsSaveInput = {
+  environment: "sandbox" | "production";
+  consumerKey: string;
+  consumerSecret: string;
+  passkey: string;
+  shortcode: string;
+  tillNumber: string;
+  accountReference?: string;
+};
+
 export type Plan = {
   id: string;
   outletId: string;

@@ -7,6 +7,8 @@ import type {
   LicenseUpdateInput,
   Outlet,
   OutletCreateInput,
+  OutletMpesaSettings,
+  OutletMpesaSettingsSaveInput,
   OutletUpdateInput,
   Plan,
   PlanCreateInput,
@@ -137,6 +139,9 @@ export const api = {
   updateOutlet: (id: string, input: OutletUpdateInput) =>
     request<Outlet>(`/outlets/${id}`, { method: "PATCH", body: JSON.stringify(input) }),
   deleteOutlet: (id: string) => request<void>(`/outlets/${id}`, { method: "DELETE" }),
+  getOutletMpesaSettings: (id: string) => request<OutletMpesaSettings | null>(`/outlets/${id}/mpesa-settings`),
+  saveOutletMpesaSettings: (id: string, input: OutletMpesaSettingsSaveInput) =>
+    request<OutletMpesaSettings>(`/outlets/${id}/mpesa-settings`, { method: "PUT", body: JSON.stringify(input) }),
 
   listAccounts: () => request<Account[]>("/accounts"),
   createAccount: (input: AccountCreateInput) =>

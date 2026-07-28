@@ -60,6 +60,11 @@ type FormState = {
   billingCycle: BillingCycle;
   price: string;
   maintenanceFee: string;
+  // Drives the FIRST due date (see billing-periods.ts on SERVER) — matters for a tenant who didn't
+  // start using the software the instant this form is submitted (e.g. onboarded on paper, activated
+  // days/weeks later). Defaults to today, same as the server's own schema default, but now a real
+  // editable field instead of silently always "right now."
+  startDate: string;
 };
 
 function emptyForm(ownOutletId: string): FormState {
@@ -90,6 +95,7 @@ function emptyForm(ownOutletId: string): FormState {
     billingCycle: "MONTHLY",
     price: "",
     maintenanceFee: "",
+    startDate: new Date().toISOString().slice(0, 10),
   };
 }
 
@@ -122,6 +128,7 @@ function toFormState(tenant: Tenant): FormState {
     billingCycle: "MONTHLY",
     price: "",
     maintenanceFee: "",
+    startDate: new Date().toISOString().slice(0, 10),
   };
 }
 
@@ -254,6 +261,7 @@ export function TenantFormModal({
           billingCycle: form.billingCycle,
           priceCents: toCents(form.price),
           maintenanceFeeCents: form.maintenanceFee.trim() ? toCents(form.maintenanceFee) : null,
+          startDate: form.startDate || undefined,
         });
       }
       onSaved();
@@ -403,6 +411,21 @@ export function TenantFormModal({
             />
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <Field
+                  label="Start Date"
+                  type="date"
+                  value={form.startDate}
+                  onChange={(v) => updateField("startDate", v)}
+                  required
+                />
+                <p className="mt-1 text-[11px] text-navy/50">
+                  When this tenant actually starts using the software — not necessarily today.
+                  {form.billingCycle === "YEARLY"
+                    ? " Their first maintenance fee falls due the following January 1st."
+                    : " Their first payment falls due one month from this date."}
+                </p>
+              </div>
               <Select
                 label="Subscription Type"
                 value={form.subscriptionType}
