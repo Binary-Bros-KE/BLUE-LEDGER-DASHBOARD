@@ -233,6 +233,49 @@ export type SubscriptionPaymentCreateInput = {
   status?: PaymentStatus;
 };
 
+/** Mirrors SERVER's computePaymentSchedule (billing-periods.ts) / DESKTOP's own
+ * shared/types/subscription-payment.ts — one shared shape so this dashboard, DESKTOP's own port,
+ * and the "pay N periods in advance" STK flow can never disagree about which period a given date
+ * falls in. "overdue" = unpaid and before the current period (red). "due" = unpaid and IS the
+ * current period (amber, due now but not yet late). */
+export type BillingPeriodEntry = {
+  key: string;
+  label: string;
+  status: "paid" | "overdue" | "due" | "future";
+};
+
+export type PaymentScheduleResult = {
+  billingCycle: BillingCycle;
+  pricePerPeriodCents: number | null;
+  currency: Currency;
+  periods: BillingPeriodEntry[];
+  nextDueDate: string | null;
+};
+
+export type BillingMpesaTransactionStatus =
+  | "pending"
+  | "success"
+  | "insufficient"
+  | "cancelled"
+  | "wrong_pin"
+  | "timeout"
+  | "failed";
+
+export type BillingMpesaStkPushResult = {
+  checkoutRequestId: string;
+  merchantRequestId: string;
+  amountCents: number;
+  periods: string[];
+};
+
+export type BillingMpesaStatusResult = {
+  status: BillingMpesaTransactionStatus;
+  message: string;
+  mpesaReceiptNumber: string | null;
+  amountCents: number;
+  phone: string;
+};
+
 /** Mirrors the API's JSON response shape for a tenant — dates arrive as ISO strings, not Date
  * objects, since this crosses a network boundary. License/Subscription are embedded (nullable only
  * in shape, never actually null in practice — every tenant gets both at creation time). */

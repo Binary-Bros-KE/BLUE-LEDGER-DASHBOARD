@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, Monitor, Pencil, Plus, ShieldCheck, ShieldOff, Store } from "lucide-react";
+import { ArrowLeft, Check, Copy, Loader2, Monitor, Pencil, Plus, ShieldCheck, ShieldOff, Store } from "lucide-react";
 import { Badge } from "@/components/Badge";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { DeviceLimitEditModal } from "@/components/tenants/DeviceLimitEditModal";
@@ -37,13 +37,51 @@ function formatDateTime(value: string | null): string {
   return value ? new Date(value).toLocaleString() : "—";
 }
 
-function InfoTile({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
+function InfoTile({
+  label,
+  value,
+  mono = false,
+  copyable = false,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+  copyable?: boolean;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard access can fail (permissions, insecure context) — nothing to recover into.
+    }
+  }
+
   return (
     <div className="border border-navy/10 bg-cream-dark px-4 py-3">
       <p className="text-[10px] font-bold tracking-wide text-navy/50 uppercase">{label}</p>
-      <p className={`mt-1 text-sm font-bold text-navy ${mono ? "truncate font-mono text-xs" : ""}`} title={mono ? value : undefined}>
-        {value}
-      </p>
+      <div className="mt-1 flex items-center gap-2">
+        <p
+          className={`text-sm font-bold text-navy ${mono ? "truncate font-mono text-xs" : ""}`}
+          title={mono ? value : undefined}
+        >
+          {value}
+        </p>
+        {copyable && (
+          <button
+            type="button"
+            onClick={() => void handleCopy()}
+            aria-label={`Copy ${label}`}
+            title={copied ? "Copied!" : `Copy ${label}`}
+            className="flex-none cursor-pointer text-navy/40 transition hover:text-navy"
+          >
+            {copied ? <Check className="size-3.5 text-green-600" /> : <Copy className="size-3.5" />}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -127,7 +165,6 @@ export default function TenantDetailPage() {
   }
 
   const { license, subscription } = tenant;
-  const startYear = new Date(tenant.createdAt).getFullYear();
   const planDefaultMaxDevices = subscription?.plan.maxDevices ?? 1;
   const effectiveMaxDevices = tenant.maxDevicesOverride ?? planDefaultMaxDevices;
   const activeDeviceCount = devices.filter((device) => device.status === "ACTIVE").length;
@@ -240,7 +277,7 @@ export default function TenantDetailPage() {
                 <Badge tone={LICENSE_TONE[license.status]}>{license.status}</Badge>
               </div>
             </div>
-            <InfoTile label="License Key" value={license.licenseKey} />
+            <InfoTile label="License Key" value={license.licenseKey} mono copyable />
             <InfoTile label="Trial Ends" value={formatDate(license.trialEndsAt)} />
             <InfoTile label="Suspension Reason" value={license.suspensionReason ?? "—"} />
           </div>
@@ -471,9 +508,9 @@ export default function TenantDetailPage() {
           )}
         </div>
 
-        {subscription?.billingCycle === "MONTHLY" && (
+        {(subscription?.billingCycle === "MONTHLY" || subscription?.billingCycle === "YEARLY") && (
           <div className="mt-5">
-            <PaymentCalendar payments={payments} startYear={startYear} />
+            <PaymentCalendar tenantId={tenant.id} onPaid={() => void loadAll()} />
           </div>
         )}
 

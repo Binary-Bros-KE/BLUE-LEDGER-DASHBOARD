@@ -2,6 +2,8 @@ import type {
   Account,
   AccountCreateInput,
   AccountUpdateInput,
+  BillingMpesaStatusResult,
+  BillingMpesaStkPushResult,
   Device,
   License,
   LicenseUpdateInput,
@@ -10,6 +12,7 @@ import type {
   OutletMpesaSettings,
   OutletMpesaSettingsSaveInput,
   OutletUpdateInput,
+  PaymentScheduleResult,
   Plan,
   PlanCreateInput,
   PlanUpdateInput,
@@ -118,6 +121,26 @@ export const api = {
   listPayments: (tenantId: string) => request<SubscriptionPayment[]>(`/tenants/${tenantId}/payments`),
   recordPayment: (tenantId: string, input: SubscriptionPaymentCreateInput) =>
     request<SubscriptionPayment>(`/tenants/${tenantId}/payments`, { method: "POST", body: JSON.stringify(input) }),
+  getPaymentSchedule: (tenantId: string) =>
+    request<PaymentScheduleResult>(`/tenants/${tenantId}/payment-schedule`),
+
+  // Admin-triggered billing M-Pesa STK — a SUPER_ADMIN paying on a client's behalf (e.g. over a
+  // support call), identified by tenantId instead of a license key.
+  sendBillingStkPush: (tenantId: string, phone: string, periodCount: number) =>
+    request<BillingMpesaStkPushResult>("/billing-mpesa/admin/stk-push", {
+      method: "POST",
+      body: JSON.stringify({ tenantId, phone, periodCount }),
+    }),
+  getBillingStkStatus: (tenantId: string, checkoutRequestId: string) =>
+    request<BillingMpesaStatusResult>("/billing-mpesa/admin/status", {
+      method: "POST",
+      body: JSON.stringify({ tenantId, checkoutRequestId }),
+    }),
+  checkBillingStkStatus: (tenantId: string, checkoutRequestId: string) =>
+    request<BillingMpesaStatusResult>("/billing-mpesa/admin/status/check", {
+      method: "POST",
+      body: JSON.stringify({ tenantId, checkoutRequestId }),
+    }),
 
   listDevices: (tenantId: string) => request<Device[]>(`/tenants/${tenantId}/devices`),
   renameDevice: (tenantId: string, deviceId: string, deviceName: string) =>
