@@ -59,13 +59,14 @@ export function PaymentCalendar({ tenantId, onPaid }: { tenantId: string; onPaid
   const owed = schedule.periods.filter((entry) => entry.status === "overdue" || entry.status === "due");
   const totalOwedCents = schedule.pricePerPeriodCents ? schedule.pricePerPeriodCents * owed.length : 0;
 
-  const years = new Map<string, BillingPeriodEntry[]>();
-  for (const entry of schedule.periods) {
-    const year = schedule.billingCycle === "MONTHLY" ? entry.key.slice(0, 4) : entry.key;
-    const bucket = years.get(year) ?? [];
-    bucket.push(entry);
-    years.set(year, bucket);
-  }
+  // Keyed lookup, NOT positional — schedule.periods starts at the tenant's real start month (e.g.
+  // May), so entries[0] is May's entry, not January's. Indexing the grid by array position instead
+  // of by actual "YYYY-MM" key silently shifted every month's status left by however many months
+  // the tenant started into the year — May's own unpaid status rendered under the January column.
+  const entryByKey = new Map(schedule.periods.map((entry) => [entry.key, entry]));
+  const years = new Set(
+    schedule.periods.map((entry) => (schedule.billingCycle === "MONTHLY" ? entry.key.slice(0, 4) : entry.key)),
+  );
 
   return (
     <div>
@@ -104,11 +105,12 @@ export function PaymentCalendar({ tenantId, onPaid }: { tenantId: string; onPaid
               </tr>
             </thead>
             <tbody>
-              {[...years.entries()].map(([year, entries]) => (
+              {[...years].map((year) => (
                 <tr key={year} className="border-t border-navy/10 odd:bg-white even:bg-cream-dark/40">
                   <td className="px-3 py-2 font-bold text-navy">{year}</td>
                   {MONTH_LABELS.map((_, index) => {
-                    const entry = entries[index];
+                    const month = index + 1;
+                    const entry = entryByKey.get(`${year}-${String(month).padStart(2, "0")}`);
                     return (
                       <td key={index} className="px-2 py-2 text-center" title={entry?.label}>
                         {!entry ? (

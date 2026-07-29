@@ -532,7 +532,7 @@ export default function TenantDetailPage() {
               <tbody>
                 {payments.map((payment) => (
                   <tr key={payment.id} className="border-b border-navy/10 last:border-0 odd:bg-white even:bg-cream-dark/30">
-                    <td className="px-4 py-2.5">{formatDate(payment.paymentDate)}</td>
+                    <td className="px-4 py-2.5">{formatDateTime(payment.paymentDate)}</td>
                     <td className="px-4 py-2.5">{payment.billingPeriod}</td>
                     <td className="px-4 py-2.5 font-bold">{formatCents(payment.amountCents, payment.currency)}</td>
                     <td className="px-4 py-2.5">{payment.paymentMethod}</td>
