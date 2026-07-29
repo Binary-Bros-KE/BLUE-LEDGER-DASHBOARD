@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, CreditCard, Landmark, Loader2, Minus, Plus, RefreshCw, Smartphone, Wallet, XCircle } from "lucide-react";
+import { CheckCircle2, CreditCard, Loader2, Minus, Plus, RefreshCw, Smartphone, Wallet, XCircle } from "lucide-react";
 import { Modal } from "@/components/Modal";
 import { api, ApiError } from "@/lib/api";
 import { formatCents } from "@/lib/money";
@@ -9,10 +9,8 @@ import type { BillingMpesaTransactionStatus, PaymentScheduleResult } from "@/lib
 
 const PAYMENT_METHODS = [
   { key: "mpesa", label: "M-Pesa", icon: Smartphone },
-  { key: "airtel", label: "Airtel Money", icon: Smartphone },
   { key: "card", label: "Card", icon: CreditCard },
   { key: "paypal", label: "PayPal", icon: Wallet },
-  { key: "bank", label: "Bank Transfer", icon: Landmark },
 ] as const;
 
 const MPESA_MESSAGES: Record<BillingMpesaTransactionStatus, string> = {
