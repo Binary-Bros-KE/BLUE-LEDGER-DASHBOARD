@@ -314,6 +314,7 @@ export default function TenantDetailPage() {
             </div>
             <InfoTile label="Price" value={formatCents(subscription.priceCents, tenant.currency)} />
             <InfoTile label="Maintenance Fee" value={formatCents(subscription.maintenanceFeeCents, tenant.currency)} />
+            <InfoTile label="Subscription Start" value={formatDate(subscription.startDate)} />
             <InfoTile label="Next Due Date" value={formatDate(subscription.nextDueDate)} />
             <InfoTile label="Maintenance Expiry" value={formatDate(subscription.maintenanceExpiry)} />
             <InfoTile label="Support Expiry" value={formatDate(subscription.supportExpiry)} />
