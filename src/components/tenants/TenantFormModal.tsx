@@ -65,7 +65,21 @@ type FormState = {
   // days/weeks later). Defaults to today, same as the server's own schema default, but now a real
   // editable field instead of silently always "right now."
   startDate: string;
+  // Was previously hardcoded TRIAL server-side with no end date at all — the exact bug that made a
+  // brand-new trial tenant immediately show as "payment due now." licenseStatus "ACTIVE" skips the
+  // trial entirely (billing starts from startDate immediately, same as before this existed).
+  licenseStatus: "TRIAL" | "ACTIVE";
+  trialEndsAt: string;
 };
+
+/** 30 days is this outlet's own standard trial length — just a sensible prefill, not enforced;
+ * still a plain editable date field. */
+function defaultTrialEndsAt(startDate: string): string {
+  const start = startDate ? new Date(startDate) : new Date();
+  const end = new Date(start);
+  end.setDate(end.getDate() + 30);
+  return end.toISOString().slice(0, 10);
+}
 
 function emptyForm(ownOutletId: string): FormState {
   return {
@@ -96,6 +110,8 @@ function emptyForm(ownOutletId: string): FormState {
     price: "",
     maintenanceFee: "",
     startDate: new Date().toISOString().slice(0, 10),
+    licenseStatus: "TRIAL",
+    trialEndsAt: defaultTrialEndsAt(new Date().toISOString().slice(0, 10)),
   };
 }
 
@@ -129,6 +145,10 @@ function toFormState(tenant: Tenant): FormState {
     price: "",
     maintenanceFee: "",
     startDate: new Date().toISOString().slice(0, 10),
+    // Not editable here either — same as planId etc. above, license status/trial end live on the
+    // tenant detail page's own License section once a tenant already exists.
+    licenseStatus: "TRIAL",
+    trialEndsAt: "",
   };
 }
 
@@ -262,6 +282,8 @@ export function TenantFormModal({
           priceCents: toCents(form.price),
           maintenanceFeeCents: form.maintenanceFee.trim() ? toCents(form.maintenanceFee) : null,
           startDate: form.startDate || undefined,
+          licenseStatus: form.licenseStatus,
+          trialEndsAt: form.licenseStatus === "TRIAL" ? form.trialEndsAt : null,
         });
       }
       onSaved();
@@ -421,9 +443,11 @@ export function TenantFormModal({
                 />
                 <p className="mt-1 text-[11px] text-navy/50">
                   When this tenant actually starts using the software — not necessarily today.
-                  {form.billingCycle === "YEARLY"
-                    ? " Their first maintenance fee falls due the following January 1st."
-                    : " Their first payment falls due one month from this date."}
+                  {form.licenseStatus === "TRIAL"
+                    ? " While on trial, nothing is due regardless of this date — see Trial Ends below."
+                    : form.billingCycle === "YEARLY"
+                      ? " Their first maintenance fee falls due the following January 1st."
+                      : " Their first payment falls due one month from this date."}
                 </p>
               </div>
               <Select
@@ -461,6 +485,36 @@ export function TenantFormModal({
                   value={form.maintenanceFee}
                   onChange={(v) => updateField("maintenanceFee", v)}
                 />
+              )}
+              <Select
+                label="License Status"
+                value={form.licenseStatus}
+                onChange={(v) => {
+                  const status = v as "TRIAL" | "ACTIVE";
+                  updateField("licenseStatus", status);
+                  if (status === "TRIAL" && !form.trialEndsAt) {
+                    updateField("trialEndsAt", defaultTrialEndsAt(form.startDate));
+                  }
+                }}
+                options={[
+                  { value: "TRIAL", label: "Trial" },
+                  { value: "ACTIVE", label: "Active (no trial)" },
+                ]}
+              />
+              {form.licenseStatus === "TRIAL" && (
+                <div>
+                  <Field
+                    label="Trial Ends"
+                    type="date"
+                    value={form.trialEndsAt}
+                    onChange={(v) => updateField("trialEndsAt", v)}
+                    required
+                    error={fieldError("trialEndsAt")}
+                  />
+                  <p className="mt-1 text-[11px] text-navy/50">
+                    Nothing is due until this date — their first payment falls due right after.
+                  </p>
+                </div>
               )}
             </div>
             {selectedPlan && (

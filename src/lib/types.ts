@@ -340,6 +340,11 @@ export type TenantCreateInput = {
   priceCents: number;
   maintenanceFeeCents?: number | null;
   startDate?: string;
+  // Defaults to TRIAL server-side if omitted — see billing-periods.ts's resolveBillingAnchorDate for
+  // why trialEndsAt matters: without it, a trial tenant's billing clock starts immediately instead of
+  // once their trial actually ends.
+  licenseStatus?: "TRIAL" | "ACTIVE";
+  trialEndsAt?: string | null;
 };
 
 export type TenantUpdateInput = Partial<{
