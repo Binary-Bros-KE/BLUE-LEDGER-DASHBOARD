@@ -15,7 +15,7 @@ type FormState = {
 };
 
 function emptyForm(): FormState {
-  return { name: "", email: "", password: "", role: "MARKETER", outletId: "", isActive: true };
+  return { name: "", email: "", password: "", role: "DISTRIBUTOR", outletId: "", isActive: true };
 }
 
 function toFormState(account: Account): FormState {
@@ -73,7 +73,7 @@ export function AccountFormModal({
           name: form.name,
           email: form.email,
           role: form.role,
-          outletId: form.role === "MARKETER" ? form.outletId : null,
+          outletId: form.role !== "SUPER_ADMIN" ? form.outletId : null,
           isActive: form.isActive,
           ...(form.password ? { password: form.password } : {}),
         });
@@ -83,7 +83,7 @@ export function AccountFormModal({
           email: form.email,
           password: form.password,
           role: form.role,
-          outletId: form.role === "MARKETER" ? form.outletId : null,
+          outletId: form.role !== "SUPER_ADMIN" ? form.outletId : null,
           isActive: form.isActive,
         });
       }
@@ -158,12 +158,13 @@ export function AccountFormModal({
               onChange={(e) => updateField("role", e.target.value as AccountRole)}
               className="mt-1.5 w-full border border-navy/20 bg-white px-3 py-2 text-sm outline-none focus:border-blue"
             >
-              <option value="MARKETER">Marketer</option>
+              <option value="DISTRIBUTOR">Distributor</option>
+              <option value="MARKETER">Marketer (legacy)</option>
               <option value="SUPER_ADMIN">Super Admin</option>
             </select>
           </label>
 
-          {form.role === "MARKETER" && (
+          {form.role !== "SUPER_ADMIN" && (
             <label className="block sm:col-span-2">
               <span className="text-[11px] font-bold tracking-wide text-navy/60 uppercase">Outlet</span>
               <select

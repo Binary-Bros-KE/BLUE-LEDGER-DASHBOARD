@@ -6,7 +6,7 @@ import { LogOut } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { visibleNavItems } from "@/lib/nav";
 
-const ROLE_LABEL = { SUPER_ADMIN: "Super Admin", MARKETER: "Marketer" } as const;
+const ROLE_LABEL = { SUPER_ADMIN: "Super Admin", MARKETER: "Marketer", DISTRIBUTOR: "Distributor" } as const;
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();

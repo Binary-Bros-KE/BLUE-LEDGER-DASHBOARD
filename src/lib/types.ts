@@ -1,4 +1,8 @@
-export type AccountRole = "SUPER_ADMIN" | "MARKETER";
+// DISTRIBUTOR is a new addition alongside MARKETER (not a replacement) — existing accounts already
+// stored with role="MARKETER" are untouched; DISTRIBUTOR exists purely so new accounts can be
+// created under a better-fitting label. Everywhere in this app that isn't specifically an
+// admin-vs-not check treats the two identically (same outlet-scoping, same permissions).
+export type AccountRole = "SUPER_ADMIN" | "MARKETER" | "DISTRIBUTOR";
 // Matches the desktop app's own Business Profile screen exactly (reconciled 2026-07-24 — these two
 // lists were built independently and didn't match at all before).
 export type BusinessType =

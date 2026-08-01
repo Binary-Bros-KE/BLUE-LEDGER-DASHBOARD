@@ -122,7 +122,7 @@ export default function AccountsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <Badge tone={acc.role === "SUPER_ADMIN" ? "gold" : "blue"}>
-                        {acc.role === "SUPER_ADMIN" ? "SUPER ADMIN" : "MARKETER"}
+                        {acc.role === "SUPER_ADMIN" ? "SUPER ADMIN" : acc.role === "DISTRIBUTOR" ? "DISTRIBUTOR" : "MARKETER"}
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-navy/60">{acc.outlet?.name ?? "—"}</td>

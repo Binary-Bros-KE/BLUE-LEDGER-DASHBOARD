@@ -4,7 +4,7 @@ import type { AccountRole } from "./types";
 export const NAV_ITEMS = [
   { href: "/", label: "Overview", icon: LayoutDashboard, superAdminOnly: false },
   { href: "/tenants", label: "Tenants", icon: Building2, superAdminOnly: false },
-  { href: "/plans", label: "Plans", icon: Package, superAdminOnly: true },
+  { href: "/plans", label: "Plans", icon: Package, superAdminOnly: false },
   { href: "/outlets", label: "Outlets", icon: Store, superAdminOnly: true },
   { href: "/accounts", label: "Accounts", icon: Users, superAdminOnly: true },
   { href: "/billing", label: "Billing", icon: CreditCard, superAdminOnly: false },
