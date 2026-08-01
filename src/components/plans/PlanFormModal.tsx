@@ -94,6 +94,8 @@ export function PlanFormModal({
   open,
   editingPlan,
   outlets,
+  isSuperAdmin,
+  ownOutletName,
   defaultOutletId,
   onClose,
   onSaved,
@@ -101,6 +103,11 @@ export function PlanFormModal({
   open: boolean;
   editingPlan: Plan | null;
   outlets: Outlet[];
+  /** A MARKETER can only ever create for their own outlet (forced server-side regardless of what's
+   * submitted) — they get a read-only field instead of the SUPER_ADMIN's full outlet picker, and
+   * never reach this modal at all for edits (the route/page only exposes editingPlan to admins). */
+  isSuperAdmin: boolean;
+  ownOutletName: string | null;
   defaultOutletId: string;
   onClose: () => void;
   onSaved: () => void;
@@ -183,23 +190,32 @@ export function PlanFormModal({
             />
           </label>
 
-          <label className="block">
-            <span className="text-[11px] font-bold tracking-wide text-navy/60 uppercase">Outlet</span>
-            <select
-              value={form.outletId}
-              onChange={(e) => updateField("outletId", e.target.value)}
-              disabled={Boolean(editingPlan)}
-              required
-              className="mt-1.5 w-full border border-navy/20 bg-white px-3 py-2 text-sm outline-none focus:border-blue disabled:cursor-not-allowed disabled:bg-cream-dark disabled:text-navy/50"
-            >
-              <option value="">Select outlet</option>
-              {outlets.map((outlet) => (
-                <option key={outlet.id} value={outlet.id}>
-                  {outlet.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          {isSuperAdmin ? (
+            <label className="block">
+              <span className="text-[11px] font-bold tracking-wide text-navy/60 uppercase">Outlet</span>
+              <select
+                value={form.outletId}
+                onChange={(e) => updateField("outletId", e.target.value)}
+                disabled={Boolean(editingPlan)}
+                required
+                className="mt-1.5 w-full border border-navy/20 bg-white px-3 py-2 text-sm outline-none focus:border-blue disabled:cursor-not-allowed disabled:bg-cream-dark disabled:text-navy/50"
+              >
+                <option value="">Select outlet</option>
+                {outlets.map((outlet) => (
+                  <option key={outlet.id} value={outlet.id}>
+                    {outlet.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <div>
+              <span className="text-[11px] font-bold tracking-wide text-navy/60 uppercase">Outlet</span>
+              <div className="mt-1.5 w-full border border-navy/20 bg-cream-dark px-3 py-2 text-sm text-navy/60">
+                {ownOutletName ?? "No outlet assigned"}
+              </div>
+            </div>
+          )}
 
           <label className="block">
             <span className="text-[11px] font-bold tracking-wide text-navy/60 uppercase">Monthly Price</span>

@@ -80,16 +80,14 @@ export default function PlansPage() {
             {isSuperAdmin ? "Every pricing package, per outlet." : `Plans available to ${account?.outlet?.name ?? "your outlet"}.`}
           </p>
         </div>
-        {isSuperAdmin && (
-          <button
-            type="button"
-            onClick={openCreateModal}
-            className="inline-flex items-center gap-2 bg-blue px-4 py-2.5 text-xs font-bold tracking-wide text-white transition hover:bg-blue-press"
-          >
-            <Plus className="size-4" aria-hidden="true" />
-            NEW PLAN
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={openCreateModal}
+          className="inline-flex items-center gap-2 bg-blue px-4 py-2.5 text-xs font-bold tracking-wide text-white transition hover:bg-blue-press"
+        >
+          <Plus className="size-4" aria-hidden="true" />
+          NEW PLAN
+        </button>
       </div>
 
       {(loadError || actionError) && (
@@ -174,28 +172,28 @@ export default function PlansPage() {
         )}
       </div>
 
-      {isSuperAdmin && (
-        <>
-          <PlanFormModal
-            open={formOpen}
-            editingPlan={editingPlan}
-            outlets={outlets}
-            defaultOutletId={outlets[0]?.id ?? ""}
-            onClose={() => setFormOpen(false)}
-            onSaved={handleSaved}
-          />
+      <PlanFormModal
+        open={formOpen}
+        editingPlan={editingPlan}
+        outlets={outlets}
+        isSuperAdmin={isSuperAdmin}
+        ownOutletName={account?.outlet?.name ?? null}
+        defaultOutletId={isSuperAdmin ? (outlets[0]?.id ?? "") : (account?.outletId ?? "")}
+        onClose={() => setFormOpen(false)}
+        onSaved={handleSaved}
+      />
 
-          <ConfirmDialog
-            open={deletingPlan !== null}
-            title="Delete plan?"
-            message={`This removes "${deletingPlan?.name}". Blocked if any client is subscribed to it — set it to Inactive instead.`}
-            confirmLabel="Delete"
-            danger
-            busy={deleteBusy}
-            onConfirm={handleDelete}
-            onCancel={() => setDeletingPlan(null)}
-          />
-        </>
+      {isSuperAdmin && (
+        <ConfirmDialog
+          open={deletingPlan !== null}
+          title="Delete plan?"
+          message={`This removes "${deletingPlan?.name}". Blocked if any client is subscribed to it — set it to Inactive instead.`}
+          confirmLabel="Delete"
+          danger
+          busy={deleteBusy}
+          onConfirm={handleDelete}
+          onCancel={() => setDeletingPlan(null)}
+        />
       )}
     </div>
   );
