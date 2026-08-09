@@ -280,6 +280,25 @@ export type BillingMpesaStatusResult = {
   phone: string;
 };
 
+export type BillingPesapalTransactionStatus = "pending" | "success" | "failed" | "reversed" | "invalid";
+
+export type BillingPesapalSubmitOrderResult = {
+  orderTrackingId: string;
+  merchantReference: string;
+  redirectUrl: string;
+  amountCents: number;
+  periods: string[];
+  accountNumber: string | null;
+};
+
+export type BillingPesapalStatusResult = {
+  status: BillingPesapalTransactionStatus;
+  message: string;
+  confirmationCode: string | null;
+  paymentMethodDetail: string | null;
+  amountCents: number;
+};
+
 /** Mirrors the API's JSON response shape for a tenant — dates arrive as ISO strings, not Date
  * objects, since this crosses a network boundary. License/Subscription are embedded (nullable only
  * in shape, never actually null in practice — every tenant gets both at creation time). */

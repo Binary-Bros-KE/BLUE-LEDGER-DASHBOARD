@@ -4,6 +4,8 @@ import type {
   AccountUpdateInput,
   BillingMpesaStatusResult,
   BillingMpesaStkPushResult,
+  BillingPesapalStatusResult,
+  BillingPesapalSubmitOrderResult,
   Device,
   License,
   LicenseUpdateInput,
@@ -140,6 +142,23 @@ export const api = {
     request<BillingMpesaStatusResult>("/billing-mpesa/admin/status/check", {
       method: "POST",
       body: JSON.stringify({ tenantId, checkoutRequestId }),
+    }),
+
+  // Admin-triggered billing Pesapal (Card/PayPal) — same shape/reasoning as the M-Pesa trio above.
+  submitBillingPesapalOrder: (tenantId: string, periodCount: number, enrollAutoBilling: boolean) =>
+    request<BillingPesapalSubmitOrderResult>("/billing-pesapal/admin/submit-order", {
+      method: "POST",
+      body: JSON.stringify({ tenantId, periodCount, enrollAutoBilling }),
+    }),
+  getPesapalStatus: (tenantId: string, orderTrackingId: string) =>
+    request<BillingPesapalStatusResult>("/billing-pesapal/admin/status", {
+      method: "POST",
+      body: JSON.stringify({ tenantId, orderTrackingId }),
+    }),
+  checkPesapalStatus: (tenantId: string, orderTrackingId: string) =>
+    request<BillingPesapalStatusResult>("/billing-pesapal/admin/status/check", {
+      method: "POST",
+      body: JSON.stringify({ tenantId, orderTrackingId }),
     }),
 
   listDevices: (tenantId: string) => request<Device[]>(`/tenants/${tenantId}/devices`),
