@@ -4,6 +4,7 @@ import type { MetadataRoute } from "next";
 // auto-linked into every page's <head>, no manual <link rel="manifest"> needed in layout.tsx.
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: "/",
     name: "DASHBOARD",
     short_name: "DASHBOARD",
     description: "Internal dashboard for managing Blue Ledger tenants.",
