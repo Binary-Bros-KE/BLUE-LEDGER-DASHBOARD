@@ -10,6 +10,7 @@ import { DeviceRenameModal } from "@/components/tenants/DeviceRenameModal";
 import { LicenseEditModal } from "@/components/tenants/LicenseEditModal";
 import { PaymentCalendar } from "@/components/tenants/PaymentCalendar";
 import { RecordPaymentModal } from "@/components/tenants/RecordPaymentModal";
+import { ShopSection } from "@/components/tenants/ShopSection";
 import { SubscriptionEditModal } from "@/components/tenants/SubscriptionEditModal";
 import { SuspendLicenseModal } from "@/components/tenants/SuspendLicenseModal";
 import { TenantFormModal } from "@/components/tenants/TenantFormModal";
@@ -327,6 +328,16 @@ export default function TenantDetailPage() {
           </div>
         </section>
       )}
+
+      {/* Online Store — e-commerce onboarding: provision the storefront, connect a domain, publish
+          products, go live. Self-contained (fetches its own overview). */}
+      <ShopSection
+        tenantId={tenant.id}
+        tenantSlug={tenant.slug}
+        tenantCurrency={tenant.currency}
+        locations={tenant.locations}
+        isSuperAdmin={isSuperAdmin}
+      />
 
       {/* Storefronts — real synced location data from the tenant's own desktop app, not the stale
           never-populated storefrontCount counter. Each row's own devices are cross-referenced by

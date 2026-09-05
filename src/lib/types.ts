@@ -421,3 +421,63 @@ export type AccountCreateInput = {
 export type AccountUpdateInput = Partial<Omit<AccountCreateInput, "password">> & {
   password?: string;
 };
+
+// --- Online Store (e-commerce onboarding) ---
+export type WebStoreStatus = "DRAFT" | "LIVE" | "SUSPENDED";
+export type DomainStatus = "NONE" | "PENDING_DNS" | "VERIFYING_TLS" | "LIVE";
+
+export type WebStore = {
+  id: string;
+  tenantId: string;
+  subdomain: string;
+  customDomain: string | null;
+  domainStatus: DomainStatus;
+  status: WebStoreStatus;
+  fulfilmentLocationId: string | null;
+  currency: string;
+  themeJson: unknown;
+  deliveryJson: unknown;
+  paymentOptionsJson: unknown;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ShopOverview = {
+  store: WebStore | null;
+  /** per-tenant à-la-carte flag */
+  ecommerceEnabled: boolean;
+  /** plan-tier flag */
+  planFeatureEcommerce: boolean;
+  storefrontBaseDomain: string;
+  storefrontPublicHost: string | null;
+  fulfilmentLocationName: string | null;
+  publishedCount: number;
+  activeProductCount: number;
+  categoryCount: number;
+};
+
+export type ShopVerifyResult = ShopOverview & { detail: string };
+
+export type ShopProvisionInput = {
+  subdomain: string;
+  currency?: string;
+  fulfilmentLocationId?: string | null;
+  customDomain?: string;
+};
+
+export type ShopUpdateInput = Partial<{
+  subdomain: string;
+  currency: string;
+  fulfilmentLocationId: string | null;
+  status: WebStoreStatus;
+}>;
+
+export type PublishableProduct = {
+  id: string;
+  name: string;
+  sku: string;
+  categoryName: string | null;
+  sellingPriceCents: number;
+  onlinePriceCents: number | null;
+  publishedOnline: boolean;
+};

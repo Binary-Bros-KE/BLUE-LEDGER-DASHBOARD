@@ -18,6 +18,11 @@ import type {
   Plan,
   PlanCreateInput,
   PlanUpdateInput,
+  PublishableProduct,
+  ShopOverview,
+  ShopProvisionInput,
+  ShopUpdateInput,
+  ShopVerifyResult,
   Subscription,
   SubscriptionPayment,
   SubscriptionPaymentCreateInput,
@@ -159,6 +164,29 @@ export const api = {
     request<BillingPesapalStatusResult>("/billing-pesapal/admin/status/check", {
       method: "POST",
       body: JSON.stringify({ tenantId, orderTrackingId }),
+    }),
+
+  // Online Store (e-commerce onboarding)
+  getShopOverview: (tenantId: string) => request<ShopOverview>(`/tenants/${tenantId}/shop`),
+  provisionShop: (tenantId: string, input: ShopProvisionInput) =>
+    request<ShopOverview>(`/tenants/${tenantId}/shop`, { method: "POST", body: JSON.stringify(input) }),
+  updateShop: (tenantId: string, input: ShopUpdateInput) =>
+    request<ShopOverview>(`/tenants/${tenantId}/shop`, { method: "PATCH", body: JSON.stringify(input) }),
+  setShopDomain: (tenantId: string, customDomain: string | null) =>
+    request<ShopOverview>(`/tenants/${tenantId}/shop/domain`, {
+      method: "POST",
+      body: JSON.stringify({ customDomain }),
+    }),
+  verifyShopDomain: (tenantId: string) =>
+    request<ShopVerifyResult>(`/tenants/${tenantId}/shop/domain/verify`, { method: "POST" }),
+  listShopProducts: (tenantId: string, search?: string) =>
+    request<PublishableProduct[]>(
+      `/tenants/${tenantId}/shop/products${search ? `?search=${encodeURIComponent(search)}` : ""}`,
+    ),
+  publishShopProducts: (tenantId: string, body: { published: boolean; productIds?: string[]; all?: boolean }) =>
+    request<ShopOverview>(`/tenants/${tenantId}/shop/products/publish`, {
+      method: "POST",
+      body: JSON.stringify(body),
     }),
 
   listDevices: (tenantId: string) => request<Device[]>(`/tenants/${tenantId}/devices`),
