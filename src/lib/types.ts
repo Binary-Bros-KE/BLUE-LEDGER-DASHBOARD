@@ -472,12 +472,5 @@ export type ShopUpdateInput = Partial<{
   status: WebStoreStatus;
 }>;
 
-export type PublishableProduct = {
-  id: string;
-  name: string;
-  sku: string;
-  categoryName: string | null;
-  sellingPriceCents: number;
-  onlinePriceCents: number | null;
-  publishedOnline: boolean;
-};
+// PublishableProduct was removed with the dashboard's bulk-publish modal — the shop owner now
+// curates their online catalogue from the desktop POS "Online Store" tab.

@@ -6,7 +6,6 @@ import { Badge } from "@/components/Badge";
 import { api, ApiError } from "@/lib/api";
 import type { DomainStatus, Location, ShopOverview, WebStoreStatus } from "@/lib/types";
 import { ShopDomainModal } from "./ShopDomainModal";
-import { ShopProductsModal } from "./ShopProductsModal";
 import { ShopSettingsModal } from "./ShopSettingsModal";
 import { ShopSetupModal } from "./ShopSetupModal";
 
@@ -58,7 +57,6 @@ export function ShopSection({
   const [setupOpen, setSetupOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [domainOpen, setDomainOpen] = useState(false);
-  const [productsOpen, setProductsOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoadError(null);
@@ -179,8 +177,8 @@ export function ShopSection({
         <>
           {overview.activeProductCount === 0 && (
             <div className="mt-4 border border-gold/40 bg-gold/10 px-4 py-3 text-sm font-semibold text-gold-text">
-              No products have synced from this tenant&rsquo;s POS yet — run cloud sync on their desktop app before
-              publishing.
+              No products have synced from this tenant&rsquo;s POS yet — they run cloud sync on their desktop app, then
+              publish products from its <span className="font-bold">Online Store</span> tab.
             </div>
           )}
 
@@ -256,7 +254,8 @@ export function ShopSection({
             )}
           </div>
 
-          {/* Products */}
+          {/* Products — read-only here. The shop owner curates their catalogue from the desktop
+              POS "Online Store" tab; this panel only owns provisioning + the domain plumbing. */}
           <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border border-navy/10 bg-white px-4 py-3">
             <div className="flex items-center gap-2">
               <Package className="size-3.5 flex-none text-navy/40" aria-hidden="true" />
@@ -265,15 +264,7 @@ export function ShopSection({
                 published · {overview.categoryCount} categor{overview.categoryCount === 1 ? "y" : "ies"}
               </p>
             </div>
-            {isSuperAdmin && (
-              <button
-                type="button"
-                onClick={() => setProductsOpen(true)}
-                className="inline-flex items-center gap-1.5 border border-navy/20 px-3 py-2 text-xs font-bold tracking-wide text-navy transition hover:bg-cream-dark"
-              >
-                MANAGE PRODUCTS
-              </button>
-            )}
+            <p className="text-xs text-navy/45">Managed by the shop owner in their POS</p>
           </div>
         </>
       )}
@@ -317,19 +308,6 @@ export function ShopSection({
           storefrontPublicHost={overview.storefrontPublicHost}
           onClose={() => setDomainOpen(false)}
           onSaved={() => void load()}
-        />
-      )}
-
-      {store && (
-        <ShopProductsModal
-          open={productsOpen}
-          tenantId={tenantId}
-          currency={store.currency}
-          onClose={() => setProductsOpen(false)}
-          onSaved={() => {
-            setProductsOpen(false);
-            void load();
-          }}
         />
       )}
     </section>

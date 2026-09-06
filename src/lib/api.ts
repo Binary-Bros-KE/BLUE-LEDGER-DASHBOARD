@@ -18,7 +18,6 @@ import type {
   Plan,
   PlanCreateInput,
   PlanUpdateInput,
-  PublishableProduct,
   ShopOverview,
   ShopProvisionInput,
   ShopUpdateInput,
@@ -179,15 +178,8 @@ export const api = {
     }),
   verifyShopDomain: (tenantId: string) =>
     request<ShopVerifyResult>(`/tenants/${tenantId}/shop/domain/verify`, { method: "POST" }),
-  listShopProducts: (tenantId: string, search?: string) =>
-    request<PublishableProduct[]>(
-      `/tenants/${tenantId}/shop/products${search ? `?search=${encodeURIComponent(search)}` : ""}`,
-    ),
-  publishShopProducts: (tenantId: string, body: { published: boolean; productIds?: string[]; all?: boolean }) =>
-    request<ShopOverview>(`/tenants/${tenantId}/shop/products/publish`, {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
+  // Publishing products + online price/description/photos is done by the shop owner from the
+  // desktop POS "Online Store" tab, not here — the dashboard only owns provisioning + domains.
 
   listDevices: (tenantId: string) => request<Device[]>(`/tenants/${tenantId}/devices`),
   renameDevice: (tenantId: string, deviceId: string, deviceName: string) =>
