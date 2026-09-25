@@ -323,6 +323,8 @@ export type Tenant = {
   notes: string | null;
   /** Per-tenant exception to the Plan's own maxDevices — null means "use the plan's value". */
   maxDevicesOverride: number | null;
+  /** Admin-only switch: when true, invoice editing is disabled on every device and the mobile app. */
+  invoiceEditsDisabled: boolean;
 
   // Extended business-profile fields — normally kept current by the desktop app's own Business
   // Profile screen (pushed up via POST /activation/profile), editable here too as the other way in.
@@ -393,6 +395,7 @@ export type TenantUpdateInput = Partial<{
   ownerPhone: string | null;
   ownerEmail: string | null;
   maxDevicesOverride: number | null;
+  invoiceEditsDisabled: boolean;
 }>;
 
 /** The embedded outlet on an Account is just the bits worth showing — same shape as Outlet. */

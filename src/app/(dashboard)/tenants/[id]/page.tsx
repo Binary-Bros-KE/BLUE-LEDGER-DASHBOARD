@@ -109,6 +109,7 @@ export default function TenantDetailPage() {
   const [subscriptionEditOpen, setSubscriptionEditOpen] = useState(false);
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
   const [deviceLimitEditOpen, setDeviceLimitEditOpen] = useState(false);
+  const [invoiceEditsBusy, setInvoiceEditsBusy] = useState(false);
   const [renamingDevice, setRenamingDevice] = useState<Device | null>(null);
 
   const loadAll = useCallback(async () => {
@@ -169,6 +170,22 @@ export default function TenantDetailPage() {
   const planDefaultMaxDevices = subscription?.plan.maxDevices ?? 1;
   const effectiveMaxDevices = tenant.maxDevicesOverride ?? planDefaultMaxDevices;
   const activeDeviceCount = devices.filter((device) => device.status === "ACTIVE").length;
+
+  const tenantId = tenant.id;
+  const invoiceEditsDisabled = tenant.invoiceEditsDisabled;
+
+  async function toggleInvoiceEdits(): Promise<void> {
+    setActionError(null);
+    setInvoiceEditsBusy(true);
+    try {
+      await api.updateTenant(tenantId, { invoiceEditsDisabled: !invoiceEditsDisabled });
+      await loadAll();
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : "Failed to update invoice editing");
+    } finally {
+      setInvoiceEditsBusy(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -422,6 +439,29 @@ export default function TenantDetailPage() {
           ) : null;
         })()}
       </section>
+
+      {isSuperAdmin && (
+        <section className="border border-navy/15 bg-white p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="font-display text-lg">Invoice editing</h2>
+              <p className="mt-1 text-sm text-navy/60">
+                {tenant.invoiceEditsDisabled
+                  ? "Disabled — existing invoices cannot be edited on any device or the mobile app. Payments and cancellations still work."
+                  : "Allowed — staff can edit unpaid invoices. Disable it to lock invoices for this tenant only."}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void toggleInvoiceEdits()}
+              disabled={invoiceEditsBusy}
+              className="inline-flex items-center gap-1.5 border border-navy/20 px-3 py-2 text-xs font-bold tracking-wide text-navy transition hover:bg-cream-dark disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {invoiceEditsBusy ? "SAVING…" : tenant.invoiceEditsDisabled ? "ENABLE INVOICE EDITING" : "DISABLE INVOICE EDITING"}
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* Devices */}
       <section className="border border-navy/15 bg-white p-5">
