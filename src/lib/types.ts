@@ -461,6 +461,10 @@ export type ShopOverview = {
   publishedCount: number;
   activeProductCount: number;
   categoryCount: number;
+  /** shop hostnames are added to the Netlify project automatically (server has a Netlify token) */
+  hostingAutomation: boolean;
+  /** on responses to actions that touched hostnames — what happened on Netlify */
+  hosting?: { ok: boolean; detail: string };
 };
 
 export type ShopVerifyResult = ShopOverview & { detail: string };

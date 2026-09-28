@@ -5,7 +5,7 @@ import { Check, Copy } from "lucide-react";
 import { Badge } from "@/components/Badge";
 import { Modal } from "@/components/Modal";
 import { api, ApiError } from "@/lib/api";
-import type { DomainStatus, WebStore } from "@/lib/types";
+import type { DomainStatus, ShopOverview, WebStore } from "@/lib/types";
 
 const DOMAIN_TONE: Record<DomainStatus, "muted" | "gold" | "blue" | "green"> = {
   NONE: "muted",
@@ -52,7 +52,7 @@ export function ShopDomainModal({
   store: WebStore;
   storefrontPublicHost: string | null;
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (result?: ShopOverview) => void;
 }) {
   const [domain, setDomain] = useState(store.customDomain ?? "");
   const [busy, setBusy] = useState<"save" | "verify" | "remove" | null>(null);
@@ -81,7 +81,7 @@ export function ShopDomainModal({
       const res = await api.setShopDomain(tenantId, domain.trim().toLowerCase());
       setSavedDomain(res.store?.customDomain ?? null);
       setStatus(res.store?.domainStatus ?? "NONE");
-      onSaved();
+      onSaved(res);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to save the domain");
     } finally {
@@ -109,11 +109,11 @@ export function ShopDomainModal({
     setBusy("remove");
     setError(null);
     try {
-      await api.setShopDomain(tenantId, null);
+      const res = await api.setShopDomain(tenantId, null);
       setSavedDomain(null);
       setStatus("NONE");
       setDomain("");
-      onSaved();
+      onSaved(res);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to remove the domain");
     } finally {

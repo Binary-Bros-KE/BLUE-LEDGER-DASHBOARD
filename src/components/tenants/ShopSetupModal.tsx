@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Modal } from "@/components/Modal";
 import { api, ApiError } from "@/lib/api";
-import type { Location } from "@/lib/types";
+import type { Location, ShopOverview } from "@/lib/types";
 
 const CURRENCIES = ["KES", "KSH", "UGX", "TZS", "USD"];
 
@@ -26,7 +26,7 @@ export function ShopSetupModal({
   storefrontPublicHost: string | null;
   locations: Location[];
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (result?: ShopOverview) => void;
 }) {
   const [subdomain, setSubdomain] = useState(defaultSubdomain);
   const [currency, setCurrency] = useState(defaultCurrency);
@@ -50,13 +50,13 @@ export function ShopSetupModal({
     setSaving(true);
     setError(null);
     try {
-      await api.provisionShop(tenantId, {
+      const result = await api.provisionShop(tenantId, {
         subdomain: subdomain.trim().toLowerCase(),
         currency: currency.trim().toUpperCase(),
         fulfilmentLocationId: fulfilmentLocationId || null,
         ...(customDomain.trim() ? { customDomain: customDomain.trim().toLowerCase() } : {}),
       });
-      onSaved();
+      onSaved(result);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to set up the online store");
     } finally {

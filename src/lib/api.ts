@@ -176,6 +176,8 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ customDomain }),
     }),
+  syncShopHosting: (tenantId: string) =>
+    request<ShopOverview>(`/tenants/${tenantId}/shop/hosting/sync`, { method: "POST" }),
   verifyShopDomain: (tenantId: string) =>
     request<ShopVerifyResult>(`/tenants/${tenantId}/shop/domain/verify`, { method: "POST" }),
   // Publishing products + online price/description/photos is done by the shop owner from the

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Modal } from "@/components/Modal";
 import { api, ApiError } from "@/lib/api";
-import type { Location, WebStore, WebStoreStatus } from "@/lib/types";
+import type { Location, ShopOverview, WebStore, WebStoreStatus } from "@/lib/types";
 
 const CURRENCIES = ["KES", "KSH", "UGX", "TZS", "USD"];
 
@@ -22,7 +22,7 @@ export function ShopSettingsModal({
   storefrontBaseDomain: string;
   locations: Location[];
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (result?: ShopOverview) => void;
 }) {
   const [subdomain, setSubdomain] = useState(store.subdomain);
   const [currency, setCurrency] = useState(store.currency);
@@ -46,13 +46,13 @@ export function ShopSettingsModal({
     setSaving(true);
     setError(null);
     try {
-      await api.updateShop(tenantId, {
+      const result = await api.updateShop(tenantId, {
         subdomain: subdomain.trim().toLowerCase(),
         currency: currency.trim().toUpperCase(),
         fulfilmentLocationId: fulfilmentLocationId || null,
         status,
       });
-      onSaved();
+      onSaved(result);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to save store settings");
     } finally {

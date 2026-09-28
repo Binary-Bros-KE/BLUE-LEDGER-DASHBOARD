@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ExternalLink, Globe, Loader2, Package, Palette, Pencil, Power, Store } from "lucide-react";
+import { ExternalLink, Globe, Loader2, Lock, Package, Palette, Pencil, Power, RefreshCw, Store } from "lucide-react";
 import { Badge } from "@/components/Badge";
 import { api, ApiError } from "@/lib/api";
 import { COLOR_ROLES, deriveRole, parseColors } from "@/lib/storefront-palette";
@@ -100,6 +100,9 @@ export function ShopSection({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [domainOpen, setDomainOpen] = useState(false);
   const [lookOpen, setLookOpen] = useState(false);
+  // What happened on Netlify after the last action that touched this store's hostnames.
+  const [hosting, setHosting] = useState<{ ok: boolean; detail: string } | null>(null);
+  const [hostingBusy, setHostingBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoadError(null);
@@ -114,6 +117,26 @@ export function ShopSection({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
+
+  /** A modal saved: keep its Netlify outcome (if any), then refresh the panel. */
+  function afterSave(result?: ShopOverview): void {
+    if (result?.hosting) setHosting(result.hosting);
+    void load();
+  }
+
+  async function syncHosting(): Promise<void> {
+    setHostingBusy(true);
+    setActionError(null);
+    try {
+      const result = await api.syncShopHosting(tenantId);
+      setOverview(result);
+      setHosting(result.hosting ?? null);
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : "Failed to sync hosting");
+    } finally {
+      setHostingBusy(false);
+    }
+  }
 
   async function setStatus(status: WebStoreStatus): Promise<void> {
     setStatusBusy(true);
@@ -297,6 +320,37 @@ export function ShopSection({
             )}
           </div>
 
+          {/* HTTPS hosting — each shop hostname must be a domain alias on the Netlify project */}
+          <div className="mt-3 border border-navy/10 bg-white px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold tracking-wide text-navy/50 uppercase">Hosting (HTTPS)</p>
+                <div className="mt-1 flex items-center gap-2">
+                  <Lock className="size-3.5 flex-none text-navy/40" aria-hidden="true" />
+                  <span className="text-sm text-navy">
+                    {overview.hostingAutomation
+                      ? "Domains are added to Netlify automatically"
+                      : "Automation off — add domains in Netlify manually"}
+                  </span>
+                </div>
+              </div>
+              {isSuperAdmin && overview.hostingAutomation && (
+                <button
+                  type="button"
+                  onClick={() => void syncHosting()}
+                  disabled={hostingBusy}
+                  className="inline-flex items-center gap-1.5 border border-navy/20 px-3 py-2 text-xs font-bold tracking-wide text-navy transition hover:bg-cream-dark disabled:opacity-60"
+                >
+                  <RefreshCw className={`size-3.5 ${hostingBusy ? "animate-spin" : ""}`} aria-hidden="true" />
+                  SYNC HTTPS
+                </button>
+              )}
+            </div>
+            {hosting && (
+              <p className={`mt-2 text-xs font-semibold ${hosting.ok ? "text-green" : "text-gold-text"}`}>{hosting.detail}</p>
+            )}
+          </div>
+
           <LookRow store={store} isSuperAdmin={isSuperAdmin} onEdit={() => setLookOpen(true)} />
 
           {/* Products — read-only here. The shop owner curates their catalogue from the desktop
@@ -324,9 +378,9 @@ export function ShopSection({
         storefrontPublicHost={overview.storefrontPublicHost}
         locations={locations}
         onClose={() => setSetupOpen(false)}
-        onSaved={() => {
+        onSaved={(result) => {
           setSetupOpen(false);
-          void load();
+          afterSave(result);
         }}
       />
 
@@ -338,9 +392,9 @@ export function ShopSection({
           storefrontBaseDomain={overview.storefrontBaseDomain}
           locations={locations}
           onClose={() => setSettingsOpen(false)}
-          onSaved={() => {
+          onSaved={(result) => {
             setSettingsOpen(false);
-            void load();
+            afterSave(result);
           }}
         />
       )}
@@ -365,7 +419,7 @@ export function ShopSection({
           store={store}
           storefrontPublicHost={overview.storefrontPublicHost}
           onClose={() => setDomainOpen(false)}
-          onSaved={() => void load()}
+          onSaved={(result) => afterSave(result)}
         />
       )}
     </section>
