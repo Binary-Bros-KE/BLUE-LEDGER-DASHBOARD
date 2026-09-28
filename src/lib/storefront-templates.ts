@@ -27,6 +27,18 @@ export const STOREFRONT_TEMPLATES: StorefrontTemplateInfo[] = [
       accent: "Category ribbon, CTA shadows, highlights, stars",
     },
   },
+  {
+    id: "adia",
+    name: "Adia",
+    description:
+      "Modern retail look — rounded cards, bold hero banner, Hot Deals countdown, brand strip. Built for ADIA; suits appliances, electronics and general retail. (Listing, product and checkout pages get their Adia design in the next phases.)",
+    colorDefaults: { primary: "#d71920", secondary: "#1c1c22", accent: "#f5a623" },
+    roleHelp: {
+      primary: "Hero & Hot Deals banners, buttons, prices, badges, category bar",
+      secondary: "Footer, countdown boxes, headings and body text",
+      accent: "Star ratings",
+    },
+  },
 ];
 
 export const DEFAULT_TEMPLATE_ID = "classic";
