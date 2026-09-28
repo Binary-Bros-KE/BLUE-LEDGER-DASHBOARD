@@ -438,6 +438,10 @@ export type WebStore = {
   status: WebStoreStatus;
   fulfilmentLocationId: string | null;
   currency: string;
+  /** which storefront template renders the shop — admin-only (see lib/storefront-templates.ts) */
+  templateId: string;
+  /** { primary?, secondary?, accent? } "#rrggbb" overrides of the template's colours — admin-only */
+  themeColorsJson: unknown;
   themeJson: unknown;
   deliveryJson: unknown;
   paymentOptionsJson: unknown;
@@ -473,6 +477,9 @@ export type ShopUpdateInput = Partial<{
   currency: string;
   fulfilmentLocationId: string | null;
   status: WebStoreStatus;
+  templateId: string;
+  /** replaces the stored overrides wholesale; null/absent role = template default */
+  themeColors: Partial<Record<"primary" | "secondary" | "accent", string | null>>;
 }>;
 
 // PublishableProduct was removed with the dashboard's bulk-publish modal — the shop owner now

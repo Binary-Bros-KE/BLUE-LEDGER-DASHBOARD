@@ -1,11 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ExternalLink, Globe, Loader2, Package, Pencil, Power, Store } from "lucide-react";
+import { ExternalLink, Globe, Loader2, Package, Palette, Pencil, Power, Store } from "lucide-react";
 import { Badge } from "@/components/Badge";
 import { api, ApiError } from "@/lib/api";
-import type { DomainStatus, Location, ShopOverview, WebStoreStatus } from "@/lib/types";
+import { COLOR_ROLES, deriveRole, parseColors } from "@/lib/storefront-palette";
+import { templateInfo } from "@/lib/storefront-templates";
+import type { DomainStatus, Location, ShopOverview, WebStore, WebStoreStatus } from "@/lib/types";
 import { ShopDomainModal } from "./ShopDomainModal";
+import { ShopLookModal } from "./ShopLookModal";
 import { ShopSettingsModal } from "./ShopSettingsModal";
 import { ShopSetupModal } from "./ShopSetupModal";
 
@@ -27,6 +30,45 @@ function Tile({ label, children }: { label: string; children: React.ReactNode })
     <div className="border border-navy/10 bg-cream-dark px-4 py-3">
       <p className="text-[10px] font-bold tracking-wide text-navy/50 uppercase">{label}</p>
       <div className="mt-1 text-sm font-bold text-navy">{children}</div>
+    </div>
+  );
+}
+
+/** Template + the three colours it renders with (the storefront's effective values, incl. any
+ * automatic deepening), so what's shown here is what shoppers see. */
+function LookRow({ store, isSuperAdmin, onEdit }: { store: WebStore; isSuperAdmin: boolean; onEdit: () => void }) {
+  const template = templateInfo(store.templateId);
+  const overrides = parseColors(store.themeColorsJson);
+  const custom = COLOR_ROLES.some((r) => overrides[r]);
+  return (
+    <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border border-navy/10 bg-white px-4 py-3">
+      <div className="min-w-0">
+        <p className="text-[10px] font-bold tracking-wide text-navy/50 uppercase">Storefront look</p>
+        <div className="mt-1 flex items-center gap-2">
+          <Palette className="size-3.5 flex-none text-navy/40" aria-hidden="true" />
+          <span className="text-sm font-bold text-navy">{template.name}</span>
+          <span className="flex gap-0.5" aria-hidden="true">
+            {COLOR_ROLES.map((r) => (
+              <span
+                key={r}
+                className="size-4 border border-navy/15"
+                style={{ background: deriveRole(r, overrides[r] ?? template.colorDefaults[r])[`--brand-${r}`] }}
+              />
+            ))}
+          </span>
+          <span className="text-xs text-navy/50">{custom ? "custom colours" : "template colours"}</span>
+        </div>
+      </div>
+      {isSuperAdmin && (
+        <button
+          type="button"
+          onClick={onEdit}
+          className="inline-flex items-center gap-1.5 border border-navy/20 px-3 py-2 text-xs font-bold tracking-wide text-navy transition hover:bg-cream-dark"
+        >
+          <Palette className="size-3.5" aria-hidden="true" />
+          CHANGE LOOK
+        </button>
+      )}
     </div>
   );
 }
@@ -57,6 +99,7 @@ export function ShopSection({
   const [setupOpen, setSetupOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [domainOpen, setDomainOpen] = useState(false);
+  const [lookOpen, setLookOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoadError(null);
@@ -254,6 +297,8 @@ export function ShopSection({
             )}
           </div>
 
+          <LookRow store={store} isSuperAdmin={isSuperAdmin} onEdit={() => setLookOpen(true)} />
+
           {/* Products — read-only here. The shop owner curates their catalogue from the desktop
               POS "Online Store" tab; this panel only owns provisioning + the domain plumbing. */}
           <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border border-navy/10 bg-white px-4 py-3">
@@ -295,6 +340,19 @@ export function ShopSection({
           onClose={() => setSettingsOpen(false)}
           onSaved={() => {
             setSettingsOpen(false);
+            void load();
+          }}
+        />
+      )}
+
+      {store && (
+        <ShopLookModal
+          open={lookOpen}
+          tenantId={tenantId}
+          store={store}
+          onClose={() => setLookOpen(false)}
+          onSaved={() => {
+            setLookOpen(false);
             void load();
           }}
         />
