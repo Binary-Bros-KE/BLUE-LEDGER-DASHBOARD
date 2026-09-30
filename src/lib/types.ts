@@ -445,6 +445,8 @@ export type WebStore = {
   themeJson: unknown;
   deliveryJson: unknown;
   paymentOptionsJson: unknown;
+  /** website price markup { markupPercent, roundTo } — {} = none */
+  pricingJson: unknown;
   createdAt: string;
   updatedAt: string;
 };
@@ -484,6 +486,8 @@ export type ShopUpdateInput = Partial<{
   templateId: string;
   /** replaces the stored overrides wholesale; null/absent role = template default */
   themeColors: Partial<Record<"primary" | "secondary" | "accent", string | null>>;
+  /** website price markup on POS prices (SERVER lib/web-pricing.ts) */
+  pricing: { markupPercent: number; roundTo: number };
 }>;
 
 // PublishableProduct was removed with the dashboard's bulk-publish modal — the shop owner now

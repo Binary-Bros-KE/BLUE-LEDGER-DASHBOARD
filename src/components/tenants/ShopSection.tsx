@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ExternalLink, Globe, Loader2, Lock, Package, Palette, Pencil, Power, RefreshCw, Store } from "lucide-react";
+import { ExternalLink, Globe, Loader2, Lock, Package, Palette, Pencil, Percent, Power, RefreshCw, Store } from "lucide-react";
 import { Badge } from "@/components/Badge";
 import { api, ApiError } from "@/lib/api";
 import { COLOR_ROLES, deriveRole, parseColors } from "@/lib/storefront-palette";
@@ -9,6 +9,7 @@ import { templateInfo } from "@/lib/storefront-templates";
 import type { DomainStatus, Location, ShopOverview, WebStore, WebStoreStatus } from "@/lib/types";
 import { ShopDomainModal } from "./ShopDomainModal";
 import { ShopLookModal } from "./ShopLookModal";
+import { markUp, readPricing, ShopPricingModal } from "./ShopPricingModal";
 import { ShopSettingsModal } from "./ShopSettingsModal";
 import { ShopSetupModal } from "./ShopSetupModal";
 
@@ -73,6 +74,42 @@ function LookRow({ store, isSuperAdmin, onEdit }: { store: WebStore; isSuperAdmi
   );
 }
 
+/** Website markup on POS prices — "+16%, nearest 10 (1,600 → 1,860)" or "Same as POS". */
+function PricingRow({ store, isSuperAdmin, onEdit }: { store: WebStore; isSuperAdmin: boolean; onEdit: () => void }) {
+  const p = readPricing(store.pricingJson);
+  return (
+    <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border border-navy/10 bg-white px-4 py-3">
+      <div className="min-w-0">
+        <p className="text-[10px] font-bold tracking-wide text-navy/50 uppercase">Website pricing</p>
+        <div className="mt-1 flex items-center gap-2">
+          <Percent className="size-3.5 flex-none text-navy/40" aria-hidden="true" />
+          {p.markupPercent ? (
+            <span className="text-sm text-navy">
+              <span className="font-bold">+{p.markupPercent}%</span> on POS prices
+              {p.roundTo > 1 ? `, rounded to the nearest ${p.roundTo}` : ""}
+              <span className="ml-2 text-xs text-navy/50">
+                ({store.currency} 1,600 → {markUp(1600, p).toLocaleString()})
+              </span>
+            </span>
+          ) : (
+            <span className="text-sm text-navy">Same as POS prices</span>
+          )}
+        </div>
+      </div>
+      {isSuperAdmin && (
+        <button
+          type="button"
+          onClick={onEdit}
+          className="inline-flex items-center gap-1.5 border border-navy/20 px-3 py-2 text-xs font-bold tracking-wide text-navy transition hover:bg-cream-dark"
+        >
+          <Percent className="size-3.5" aria-hidden="true" />
+          SET MARKUP
+        </button>
+      )}
+    </div>
+  );
+}
+
 function storeUrl(host: string): string {
   const scheme = host.includes("localhost") || host.startsWith("127.") ? "http" : "https";
   return `${scheme}://${host}`;
@@ -100,6 +137,7 @@ export function ShopSection({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [domainOpen, setDomainOpen] = useState(false);
   const [lookOpen, setLookOpen] = useState(false);
+  const [pricingOpen, setPricingOpen] = useState(false);
   // What happened on Netlify after the last action that touched this store's hostnames.
   const [hosting, setHosting] = useState<{ ok: boolean; detail: string } | null>(null);
   const [hostingBusy, setHostingBusy] = useState(false);
@@ -352,6 +390,7 @@ export function ShopSection({
           </div>
 
           <LookRow store={store} isSuperAdmin={isSuperAdmin} onEdit={() => setLookOpen(true)} />
+          <PricingRow store={store} isSuperAdmin={isSuperAdmin} onEdit={() => setPricingOpen(true)} />
 
           {/* Products — read-only here. The shop owner curates their catalogue from the desktop
               POS "Online Store" tab; this panel only owns provisioning + the domain plumbing. */}
@@ -408,6 +447,19 @@ export function ShopSection({
           onSaved={() => {
             setLookOpen(false);
             void load();
+          }}
+        />
+      )}
+
+      {store && (
+        <ShopPricingModal
+          open={pricingOpen}
+          tenantId={tenantId}
+          store={store}
+          onClose={() => setPricingOpen(false)}
+          onSaved={(result) => {
+            setPricingOpen(false);
+            afterSave(result);
           }}
         />
       )}
