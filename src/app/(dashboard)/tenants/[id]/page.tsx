@@ -110,6 +110,7 @@ export default function TenantDetailPage() {
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
   const [deviceLimitEditOpen, setDeviceLimitEditOpen] = useState(false);
   const [invoiceEditsBusy, setInvoiceEditsBusy] = useState(false);
+  const [invoiceStockBusy, setInvoiceStockBusy] = useState(false);
   const [renamingDevice, setRenamingDevice] = useState<Device | null>(null);
 
   const loadAll = useCallback(async () => {
@@ -184,6 +185,21 @@ export default function TenantDetailPage() {
       setActionError(err instanceof ApiError ? err.message : "Failed to update invoice editing");
     } finally {
       setInvoiceEditsBusy(false);
+    }
+  }
+
+  const invoiceStockFromMainStore = tenant.invoiceStockFromMainStore;
+
+  async function toggleInvoiceStockSource(): Promise<void> {
+    setActionError(null);
+    setInvoiceStockBusy(true);
+    try {
+      await api.updateTenant(tenantId, { invoiceStockFromMainStore: !invoiceStockFromMainStore });
+      await loadAll();
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : "Failed to update invoice stock source");
+    } finally {
+      setInvoiceStockBusy(false);
     }
   }
 
@@ -458,6 +474,29 @@ export default function TenantDetailPage() {
               className="inline-flex items-center gap-1.5 border border-navy/20 px-3 py-2 text-xs font-bold tracking-wide text-navy transition hover:bg-cream-dark disabled:cursor-not-allowed disabled:opacity-60"
             >
               {invoiceEditsBusy ? "SAVING…" : tenant.invoiceEditsDisabled ? "ENABLE INVOICE EDITING" : "DISABLE INVOICE EDITING"}
+            </button>
+          </div>
+        </section>
+      )}
+
+      {isSuperAdmin && (
+        <section className="border border-navy/15 bg-white p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="font-display text-lg">Invoice stock from Main Store</h2>
+              <p className="mt-1 text-sm text-navy/60">
+                {tenant.invoiceStockFromMainStore
+                  ? "Enabled — each invoice (including quotations converted to invoices) can take its stock from the storefront or straight from the Main Store, without a transfer first."
+                  : "Off — invoices always take stock from the storefront's own shelf. Enable it to let this tenant choose Main Store per invoice."}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void toggleInvoiceStockSource()}
+              disabled={invoiceStockBusy}
+              className="inline-flex items-center gap-1.5 border border-navy/20 px-3 py-2 text-xs font-bold tracking-wide text-navy transition hover:bg-cream-dark disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {invoiceStockBusy ? "SAVING…" : tenant.invoiceStockFromMainStore ? "DISABLE MAIN STORE INVOICING" : "ENABLE MAIN STORE INVOICING"}
             </button>
           </div>
         </section>

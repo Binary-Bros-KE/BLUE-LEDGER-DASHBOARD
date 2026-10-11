@@ -325,6 +325,9 @@ export type Tenant = {
   maxDevicesOverride: number | null;
   /** Admin-only switch: when true, invoice editing is disabled on every device and the mobile app. */
   invoiceEditsDisabled: boolean;
+  /** Admin-only switch: when true, invoices (and quotations converted into them) can draw stock
+   * straight from the Main Store instead of the storefront — chosen per invoice. */
+  invoiceStockFromMainStore: boolean;
 
   // Extended business-profile fields — normally kept current by the desktop app's own Business
   // Profile screen (pushed up via POST /activation/profile), editable here too as the other way in.
@@ -396,6 +399,7 @@ export type TenantUpdateInput = Partial<{
   ownerEmail: string | null;
   maxDevicesOverride: number | null;
   invoiceEditsDisabled: boolean;
+  invoiceStockFromMainStore: boolean;
 }>;
 
 /** The embedded outlet on an Account is just the bits worth showing — same shape as Outlet. */
