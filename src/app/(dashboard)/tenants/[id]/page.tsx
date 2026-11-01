@@ -7,6 +7,7 @@ import { Badge } from "@/components/Badge";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { DeviceLimitEditModal } from "@/components/tenants/DeviceLimitEditModal";
 import { DeviceRenameModal } from "@/components/tenants/DeviceRenameModal";
+import { DropshipSection } from "@/components/tenants/DropshipSection";
 import { LicenseEditModal } from "@/components/tenants/LicenseEditModal";
 import { PaymentCalendar } from "@/components/tenants/PaymentCalendar";
 import { RecordPaymentModal } from "@/components/tenants/RecordPaymentModal";
@@ -501,6 +502,14 @@ export default function TenantDetailPage() {
           </div>
         </section>
       )}
+
+      {/* Dropshipping — reflect another store's live stock. Self-contained (fetches its own overview). */}
+      <DropshipSection
+        tenantId={tenant.id}
+        locations={tenant.locations}
+        isSuperAdmin={isSuperAdmin}
+        onTenantChanged={() => void loadAll()}
+      />
 
       {/* Devices */}
       <section className="border border-navy/15 bg-white p-5">

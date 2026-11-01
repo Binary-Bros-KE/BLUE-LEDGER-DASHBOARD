@@ -328,6 +328,8 @@ export type Tenant = {
   /** Admin-only switch: when true, invoices (and quotations converted into them) can draw stock
    * straight from the Main Store instead of the storefront — chosen per invoice. */
   invoiceStockFromMainStore: boolean;
+  /** Admin-only switch: this tenant's stock reflects its dropship suppliers' live stock. */
+  dropshippingEnabled: boolean;
 
   // Extended business-profile fields — normally kept current by the desktop app's own Business
   // Profile screen (pushed up via POST /activation/profile), editable here too as the other way in.
@@ -400,7 +402,59 @@ export type TenantUpdateInput = Partial<{
   maxDevicesOverride: number | null;
   invoiceEditsDisabled: boolean;
   invoiceStockFromMainStore: boolean;
+  dropshippingEnabled: boolean;
 }>;
+
+// --- Dropshipping (see SERVER services/dropship-service.ts) ----------------------------------------
+
+export type DropshipConnection = {
+  id: string;
+  supplierTenantId: string;
+  supplierName: string;
+  /** The reseller's own location holding the reflected quantity. */
+  targetLocationId: string;
+  targetLocationName: string | null;
+  status: "active" | "paused";
+  autoImport: boolean;
+  lastMirroredAt: string | null;
+  lastCatalogSyncAt: string | null;
+  lastError: string | null;
+  linkCount: number;
+};
+
+export type DropshipOverview = {
+  dropshippingEnabled: boolean;
+  connections: DropshipConnection[];
+  supplierOptions: Array<{ id: string; name: string; slug: string }>;
+};
+
+export type DropshipLink = {
+  id: string;
+  resellerProductId: string;
+  supplierProductId: string;
+  name: string | null;
+  sku: string | null;
+  supplierQty: number | null;
+  resellerQty: number;
+  lastMirroredAt: string | null;
+};
+
+export type DropshipConnectionCreateInput = {
+  supplierTenantId: string;
+  targetLocationId: string;
+  autoImport: boolean;
+};
+
+export type DropshipConnectionUpdateInput = Partial<{
+  targetLocationId: string;
+  status: "active" | "paused";
+  autoImport: boolean;
+}>;
+
+export type DropshipResyncResult = {
+  catalog: { linked: number; imported: number; skipped: Array<{ name: string; reason: string }> };
+  adjusted: number;
+};
 
 /** The embedded outlet on an Account is just the bits worth showing — same shape as Outlet. */
 export type Account = {

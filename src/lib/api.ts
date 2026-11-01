@@ -7,6 +7,11 @@ import type {
   BillingPesapalStatusResult,
   BillingPesapalSubmitOrderResult,
   Device,
+  DropshipConnectionCreateInput,
+  DropshipConnectionUpdateInput,
+  DropshipLink,
+  DropshipOverview,
+  DropshipResyncResult,
   License,
   LicenseUpdateInput,
   Outlet,
@@ -182,6 +187,27 @@ export const api = {
     request<ShopVerifyResult>(`/tenants/${tenantId}/shop/domain/verify`, { method: "POST" }),
   // Publishing products + online price/description/photos is done by the shop owner from the
   // desktop POS "Online Store" tab, not here — the dashboard only owns provisioning + domains.
+
+  // Dropshipping — this tenant reflects other tenants' live stock.
+  getDropshipOverview: (tenantId: string) => request<DropshipOverview>(`/tenants/${tenantId}/dropship`),
+  createDropshipConnection: (tenantId: string, input: DropshipConnectionCreateInput) =>
+    request<DropshipOverview>(`/tenants/${tenantId}/dropship/connections`, { method: "POST", body: JSON.stringify(input) }),
+  updateDropshipConnection: (tenantId: string, connectionId: string, input: DropshipConnectionUpdateInput) =>
+    request<DropshipOverview>(`/tenants/${tenantId}/dropship/connections/${connectionId}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  deleteDropshipConnection: (tenantId: string, connectionId: string) =>
+    request<DropshipOverview>(`/tenants/${tenantId}/dropship/connections/${connectionId}`, { method: "DELETE" }),
+  listDropshipLinks: (tenantId: string, connectionId: string) =>
+    request<DropshipLink[]>(`/tenants/${tenantId}/dropship/connections/${connectionId}/links`),
+  deleteDropshipLink: (tenantId: string, connectionId: string, linkId: string) =>
+    request<void>(`/tenants/${tenantId}/dropship/connections/${connectionId}/links/${linkId}`, { method: "DELETE" }),
+  resyncDropshipConnection: (tenantId: string, connectionId: string, importMissing: boolean) =>
+    request<DropshipResyncResult>(`/tenants/${tenantId}/dropship/connections/${connectionId}/resync`, {
+      method: "POST",
+      body: JSON.stringify({ importMissing }),
+    }),
 
   listDevices: (tenantId: string) => request<Device[]>(`/tenants/${tenantId}/devices`),
   renameDevice: (tenantId: string, deviceId: string, deviceName: string) =>
