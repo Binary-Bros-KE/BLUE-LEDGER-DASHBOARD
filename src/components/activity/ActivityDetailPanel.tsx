@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Laptop, Loader2, Smartphone, X } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
+import { formatDate } from "@/lib/dates";
 import { formatCents } from "@/lib/money";
 import type { TenantActivityDetail } from "@/lib/types";
 import { MiniBars, StatePill, timeAgo } from "./activity-parts";
@@ -100,7 +101,7 @@ export function ActivityDetailPanel({ tenantId, onClose }: { tenantId: string; o
                             <Laptop className="size-3.5 text-navy/40" aria-hidden="true" />
                             {device.name}
                           </p>
-                          <p className="text-[11px] text-navy/50">{device.status === "ACTIVE" ? "" : `${device.status.toLowerCase()} · `}since {new Date(device.registeredAt).toLocaleDateString()}</p>
+                          <p className="text-[11px] text-navy/50">{device.status === "ACTIVE" ? "" : `${device.status.toLowerCase()} · `}since {formatDate(device.registeredAt)}</p>
                         </td>
                         <td className="px-4 py-2.5">
                           <StatePill state={device.state} />

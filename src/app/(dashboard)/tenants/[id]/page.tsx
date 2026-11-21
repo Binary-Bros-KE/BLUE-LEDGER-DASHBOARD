@@ -17,6 +17,7 @@ import { SuspendLicenseModal } from "@/components/tenants/SuspendLicenseModal";
 import { TenantFormModal } from "@/components/tenants/TenantFormModal";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { formatDate as formatDateOnly, formatDateTime as formatDateTimeValue } from "@/lib/dates";
 import { formatCents } from "@/lib/money";
 import type { Device, LicenseStatus, Outlet, Plan, SubscriptionPayment, Tenant } from "@/lib/types";
 
@@ -28,7 +29,7 @@ const LICENSE_TONE: Record<LicenseStatus, "blue" | "green" | "red" | "muted"> = 
 };
 
 function formatDate(value: string | null): string {
-  return value ? new Date(value).toLocaleDateString() : "—";
+  return value ? formatDateOnly(value) : "—";
 }
 
 /** Date AND time — used only for the Devices table's Registered/Last Seen columns, where knowing
@@ -36,7 +37,7 @@ function formatDate(value: string | null): string {
  * than changing formatDate itself, since that one's shared by License/Subscription/Payment dates
  * elsewhere on this page where a bare date is enough. */
 function formatDateTime(value: string | null): string {
-  return value ? new Date(value).toLocaleString() : "—";
+  return value ? formatDateTimeValue(value) : "—";
 }
 
 function InfoTile({

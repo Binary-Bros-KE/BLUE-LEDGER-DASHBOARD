@@ -6,10 +6,11 @@ import { Badge } from "@/components/Badge";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Modal } from "@/components/Modal";
 import { api, ApiError } from "@/lib/api";
+import { formatDateTime as formatDateTimeValue } from "@/lib/dates";
 import type { DropshipConnection, DropshipLink, DropshipOverview, DropshipResyncResult, Location } from "@/lib/types";
 
 function formatDateTime(value: string | null): string {
-  return value ? new Date(value).toLocaleString() : "—";
+  return value ? formatDateTimeValue(value) : "—";
 }
 
 function describeResync(result: DropshipResyncResult): string {

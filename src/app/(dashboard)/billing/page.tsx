@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AlertTriangle, Eye, Loader2, ShieldAlert, Wallet } from "lucide-react";
 import { Badge } from "@/components/Badge";
 import { api, ApiError } from "@/lib/api";
+import { formatDate } from "@/lib/dates";
 import { formatCents } from "@/lib/money";
 import type { Tenant } from "@/lib/types";
 
@@ -131,7 +132,7 @@ export default function BillingPage() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-navy/60">
-                      {tenant.subscription?.nextDueDate ? new Date(tenant.subscription.nextDueDate).toLocaleDateString() : "—"}
+                      {tenant.subscription?.nextDueDate ? formatDate(tenant.subscription.nextDueDate) : "—"}
                     </td>
                     <td className="px-4 py-3">
                       {overdue !== null ? (

@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/dates";
 import type { ActivityState } from "@/lib/types";
 
 /** Label + colour for each activity bucket (SERVER lib/activity-status.ts decides the bucket). */
@@ -34,7 +35,7 @@ export function timeAgo(iso: string | null, now: Date = new Date()): string {
   const days = Math.floor(hours / 24);
   if (days === 1) return "yesterday";
   if (days < 30) return `${days} days ago`;
-  return new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+  return formatDate(iso);
 }
 
 /** A tiny bar chart (no chart library) — one bar per day, oldest first, today highlighted. */

@@ -7,17 +7,17 @@ import { Badge } from "@/components/Badge";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { TenantFormModal } from "@/components/tenants/TenantFormModal";
 import { api, ApiError } from "@/lib/api";
+import { formatDate } from "@/lib/dates";
 import { useAuth } from "@/lib/auth-context";
 import { formatCents } from "@/lib/money";
 import type { LicenseStatus, Outlet, Plan, Tenant } from "@/lib/types";
 
-const LICENSE_TONE: Record<LicenseStatus, "blue" | "green" | "red" | "muted"> =
-  {
-    TRIAL: "blue",
-    ACTIVE: "green",
-    SUSPENDED: "red",
-    CANCELLED: "muted",
-  };
+const LICENSE_TONE: Record<LicenseStatus, "blue" | "green" | "red" | "muted"> = {
+  TRIAL: "blue",
+  ACTIVE: "green",
+  SUSPENDED: "red",
+  CANCELLED: "muted",
+};
 
 export default function TenantsPage() {
   const { account } = useAuth();
@@ -50,11 +50,7 @@ export default function TenantsPage() {
       setOutlets(outletList);
       setPlans(planList);
     } catch (err) {
-      setLoadError(
-        err instanceof ApiError
-          ? err.message
-          : "Failed to load tenants — is the API running?",
-      );
+      setLoadError(err instanceof ApiError ? err.message : "Failed to load tenants — is the API running?");
     }
   }, [isSuperAdmin]);
 
@@ -69,9 +65,7 @@ export default function TenantsPage() {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return tenants;
     return tenants.filter((tenant) =>
-      `${tenant.name} ${tenant.slug} ${tenant.contactEmail} ${tenant.ownerName ?? ""}`
-        .toLowerCase()
-        .includes(term),
+      `${tenant.name} ${tenant.slug} ${tenant.contactEmail} ${tenant.ownerName ?? ""}`.toLowerCase().includes(term),
     );
   }, [tenants, searchTerm]);
 
@@ -99,9 +93,7 @@ export default function TenantsPage() {
       setDeletingTenant(null);
       await loadAll();
     } catch (err) {
-      setActionError(
-        err instanceof ApiError ? err.message : "Failed to delete tenant",
-      );
+      setActionError(err instanceof ApiError ? err.message : "Failed to delete tenant");
     } finally {
       setDeleteBusy(false);
     }
@@ -146,9 +138,7 @@ export default function TenantsPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-[11px] font-bold tracking-[0.16em] text-green uppercase">
-            Clients
-          </p>
+          <p className="text-[11px] font-bold tracking-[0.16em] text-green uppercase">Clients</p>
           <h1 className="mt-1 font-display text-2xl">Tenants</h1>
           <p className="mt-1 text-sm text-navy/60">
             {isSuperAdmin
@@ -167,17 +157,12 @@ export default function TenantsPage() {
       </div>
 
       {(loadError || actionError) && (
-        <div className="border border-red/30 bg-red/10 px-4 py-3 text-sm font-semibold text-red">
-          {loadError ?? actionError}
-        </div>
+        <div className="border border-red/30 bg-red/10 px-4 py-3 text-sm font-semibold text-red">{loadError ?? actionError}</div>
       )}
 
       <label className="block max-w-sm">
         <div className="relative">
-          <Search
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-navy/40"
-            aria-hidden="true"
-          />
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-navy/40" aria-hidden="true" />
           <input
             type="text"
             value={searchTerm}
@@ -195,13 +180,9 @@ export default function TenantsPage() {
           </div>
         ) : filteredTenants && filteredTenants.length === 0 ? (
           <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 p-10 text-center">
-            <p className="font-display text-lg">
-              {tenants.length === 0 ? "No tenants yet" : "No matches"}
-            </p>
+            <p className="font-display text-lg">{tenants.length === 0 ? "No tenants yet" : "No matches"}</p>
             <p className="text-sm text-navy/60">
-              {tenants.length === 0
-                ? "Create the first tenant to get started."
-                : "Try a different search."}
+              {tenants.length === 0 ? "Create the first tenant to get started." : "Try a different search."}
             </p>
           </div>
         ) : (
@@ -221,55 +202,31 @@ export default function TenantsPage() {
                 </thead>
                 <tbody>
                   {(filteredTenants ?? []).map((tenant) => (
-                    <tr
-                      key={tenant.id}
-                      className="border-b border-navy/10 last:border-0 odd:bg-white even:bg-cream-dark/30"
-                    >
+                    <tr key={tenant.id} className="border-b border-navy/10 last:border-0 odd:bg-white even:bg-cream-dark/30">
                       <td className="px-4 py-3">
                         <p className="font-bold">{tenant.name}</p>
                         <p className="text-xs text-navy/50">{tenant.slug}</p>
                       </td>
-                      {isSuperAdmin && (
-                        <td className="px-4 py-3 text-navy/60">
-                          {tenant.outlet.name}
-                        </td>
-                      )}
+                      {isSuperAdmin && <td className="px-4 py-3 text-navy/60">{tenant.outlet.name}</td>}
                       <td className="px-4 py-3">
                         <p>{tenant.contactEmail}</p>
-                        <p className="text-xs text-navy/50">
-                          {tenant.ownerName ?? "—"}
-                        </p>
+                        <p className="text-xs text-navy/50">{tenant.ownerName ?? "—"}</p>
                       </td>
                       <td className="px-4 py-3 text-xs text-navy/70">
                         {tenant.subscription ? (
                           <>
-                            <p className="font-bold text-navy">
-                              {tenant.subscription.plan.name}
-                            </p>
-                            <p>
-                              {formatCents(
-                                tenant.subscription.priceCents,
-                                tenant.currency,
-                              )}
-                            </p>
+                            <p className="font-bold text-navy">{tenant.subscription.plan.name}</p>
+                            <p>{formatCents(tenant.subscription.priceCents, tenant.currency)}</p>
                           </>
                         ) : (
                           "—"
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        {tenant.license && (
-                          <Badge tone={LICENSE_TONE[tenant.license.status]}>
-                            {tenant.license.status}
-                          </Badge>
-                        )}
+                        {tenant.license && <Badge tone={LICENSE_TONE[tenant.license.status]}>{tenant.license.status}</Badge>}
                       </td>
                       <td className="px-4 py-3 text-xs text-navy/60">
-                        {tenant.subscription?.nextDueDate
-                          ? new Date(
-                              tenant.subscription.nextDueDate,
-                            ).toLocaleDateString()
-                          : "—"}
+                        {tenant.subscription?.nextDueDate ? formatDate(tenant.subscription.nextDueDate) : "—"}
                       </td>
                       <td className="px-4 py-3">{tenantActions(tenant)}</td>
                     </tr>
@@ -279,10 +236,7 @@ export default function TenantsPage() {
             </div>
             <ul className="divide-y divide-navy/10 md:hidden">
               {(filteredTenants ?? []).map((tenant) => (
-                <li
-                  key={tenant.id}
-                  className="space-y-3 p-4 odd:bg-white even:bg-cream-dark/30"
-                >
+                <li key={tenant.id} className="space-y-3 p-4 odd:bg-white even:bg-cream-dark/30">
                   <div className="flex items-start justify-between gap-3">
                     <Link href={`/tenants/${tenant.id}`} className="min-w-0">
                       <p className="truncate font-bold">{tenant.name}</p>
@@ -291,48 +245,29 @@ export default function TenantsPage() {
                         {isSuperAdmin ? ` · ${tenant.outlet.name}` : ""}
                       </p>
                     </Link>
-                    {tenant.license && (
-                      <Badge tone={LICENSE_TONE[tenant.license.status]}>
-                        {tenant.license.status}
-                      </Badge>
-                    )}
+                    {tenant.license && <Badge tone={LICENSE_TONE[tenant.license.status]}>{tenant.license.status}</Badge>}
                   </div>
                   <div className="text-xs">
-                    <p className="truncate text-navy/80">
-                      {tenant.contactEmail}
-                    </p>
+                    <p className="truncate text-navy/80">{tenant.contactEmail}</p>
                     <p className="text-navy/50">{tenant.ownerName ?? "—"}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
-                      <p className="text-[10px] font-bold tracking-wide text-navy/40 uppercase">
-                        Plan
-                      </p>
+                      <p className="text-[10px] font-bold tracking-wide text-navy/40 uppercase">Plan</p>
                       {tenant.subscription ? (
                         <p className="mt-0.5 text-navy/70">
-                          <span className="font-bold text-navy">
-                            {tenant.subscription.plan.name}
-                          </span>
+                          <span className="font-bold text-navy">{tenant.subscription.plan.name}</span>
                           <br />
-                          {formatCents(
-                            tenant.subscription.priceCents,
-                            tenant.currency,
-                          )}
+                          {formatCents(tenant.subscription.priceCents, tenant.currency)}
                         </p>
                       ) : (
                         <p className="mt-0.5 text-navy/50">—</p>
                       )}
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold tracking-wide text-navy/40 uppercase">
-                        Next due
-                      </p>
+                      <p className="text-[10px] font-bold tracking-wide text-navy/40 uppercase">Next due</p>
                       <p className="mt-0.5 text-navy/60">
-                        {tenant.subscription?.nextDueDate
-                          ? new Date(
-                              tenant.subscription.nextDueDate,
-                            ).toLocaleDateString()
-                          : "—"}
+                        {tenant.subscription?.nextDueDate ? formatDate(tenant.subscription.nextDueDate) : "—"}
                       </p>
                     </div>
                   </div>

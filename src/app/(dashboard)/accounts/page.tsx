@@ -7,11 +7,12 @@ import { Badge } from "@/components/Badge";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { formatDateTime } from "@/lib/dates";
 import type { Account, Outlet } from "@/lib/types";
 
 function formatDate(value: string | null): string {
   if (!value) return "Never";
-  return new Date(value).toLocaleString();
+  return formatDateTime(value);
 }
 
 export default function AccountsPage() {

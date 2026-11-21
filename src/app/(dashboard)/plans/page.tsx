@@ -25,24 +25,16 @@ export default function PlansPage() {
   const [deleteBusy, setDeleteBusy] = useState(false);
   // "" = every outlet. Super Admins only — everyone else only ever sees their own outlet's plans.
   const [outletFilter, setOutletFilter] = useState("");
-  const visiblePlans =
-    plans && outletFilter
-      ? plans.filter((plan) => plan.outletId === outletFilter)
-      : plans;
+  const visiblePlans = plans && outletFilter ? plans.filter((plan) => plan.outletId === outletFilter) : plans;
 
   const loadAll = useCallback(async () => {
     setLoadError(null);
     try {
-      const [planList, outletList] = await Promise.all([
-        api.listPlans(),
-        isSuperAdmin ? api.listOutlets() : Promise.resolve([]),
-      ]);
+      const [planList, outletList] = await Promise.all([api.listPlans(), isSuperAdmin ? api.listOutlets() : Promise.resolve([])]);
       setPlans(planList);
       setOutlets(outletList);
     } catch (err) {
-      setLoadError(
-        err instanceof ApiError ? err.message : "Failed to load plans",
-      );
+      setLoadError(err instanceof ApiError ? err.message : "Failed to load plans");
     }
   }, [isSuperAdmin]);
 
@@ -71,9 +63,7 @@ export default function PlansPage() {
       setDeletingPlan(null);
       await loadAll();
     } catch (err) {
-      setActionError(
-        err instanceof ApiError ? err.message : "Failed to delete plan",
-      );
+      setActionError(err instanceof ApiError ? err.message : "Failed to delete plan");
     } finally {
       setDeleteBusy(false);
     }
@@ -87,18 +77,10 @@ export default function PlansPage() {
   function planPricing(plan: Plan) {
     return (
       <>
-        {plan.monthlyPriceCents !== null && (
-          <p>{formatCents(plan.monthlyPriceCents)} / mo</p>
-        )}
-        {plan.purchasePriceCents !== null && (
-          <p>{formatCents(plan.purchasePriceCents)} once</p>
-        )}
-        {plan.annualMaintenanceCents !== null && (
-          <p>{formatCents(plan.annualMaintenanceCents)} / yr maintenance</p>
-        )}
-        {plan.monthlyPriceCents === null &&
-          plan.purchasePriceCents === null &&
-          "—"}
+        {plan.monthlyPriceCents !== null && <p>{formatCents(plan.monthlyPriceCents)} / mo</p>}
+        {plan.purchasePriceCents !== null && <p>{formatCents(plan.purchasePriceCents)} once</p>}
+        {plan.annualMaintenanceCents !== null && <p>{formatCents(plan.annualMaintenanceCents)} / yr maintenance</p>}
+        {plan.monthlyPriceCents === null && plan.purchasePriceCents === null && "—"}
       </>
     );
   }
@@ -106,8 +88,7 @@ export default function PlansPage() {
   function planLimits(plan: Plan) {
     return (
       <>
-        {plan.maxBranches} branch{plan.maxBranches === 1 ? "" : "es"} &middot;{" "}
-        {plan.maxUsers} users &middot; {plan.maxDevices} devices
+        {plan.maxBranches} branch{plan.maxBranches === 1 ? "" : "es"} &middot; {plan.maxUsers} users &middot; {plan.maxDevices} devices
       </>
     );
   }
@@ -142,14 +123,10 @@ export default function PlansPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-[11px] font-bold tracking-[0.16em] text-green uppercase">
-            Pricing
-          </p>
+          <p className="text-[11px] font-bold tracking-[0.16em] text-green uppercase">Pricing</p>
           <h1 className="mt-1 font-display text-2xl">Plans</h1>
           <p className="mt-1 text-sm text-navy/60">
-            {isSuperAdmin
-              ? "Every pricing package, per outlet."
-              : `Plans available to ${account?.outlet?.name ?? "your outlet"}.`}
+            {isSuperAdmin ? "Every pricing package, per outlet." : `Plans available to ${account?.outlet?.name ?? "your outlet"}.`}
           </p>
         </div>
         <button
@@ -163,39 +140,32 @@ export default function PlansPage() {
       </div>
 
       {(loadError || actionError) && (
-        <div className="border border-red/30 bg-red/10 px-4 py-3 text-sm font-semibold text-red">
-          {loadError ?? actionError}
-        </div>
+        <div className="border border-red/30 bg-red/10 px-4 py-3 text-sm font-semibold text-red">{loadError ?? actionError}</div>
       )}
 
-      {isSuperAdmin &&
-        outlets.length > 1 &&
-        plans !== null &&
-        plans.length > 0 && (
-          <div className="flex flex-wrap items-end gap-3">
-            <label className="block">
-              <span className="text-[11px] font-bold tracking-wide text-navy/60 uppercase">
-                Outlet
-              </span>
-              <select
-                value={outletFilter}
-                onChange={(e) => setOutletFilter(e.target.value)}
-                className="mt-1.5 block w-64 border border-navy/20 bg-white px-3 py-2 text-sm outline-none focus:border-blue"
-              >
-                <option value="">All outlets</option>
-                {outlets.map((outlet) => (
-                  <option key={outlet.id} value={outlet.id}>
-                    {outlet.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <p className="pb-2 text-xs text-navy/50">
-              {visiblePlans?.length ?? 0} of {plans.length} plan
-              {plans.length === 1 ? "" : "s"}
-            </p>
-          </div>
-        )}
+      {isSuperAdmin && outlets.length > 1 && plans !== null && plans.length > 0 && (
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="block">
+            <span className="text-[11px] font-bold tracking-wide text-navy/60 uppercase">Outlet</span>
+            <select
+              value={outletFilter}
+              onChange={(e) => setOutletFilter(e.target.value)}
+              className="mt-1.5 block w-64 border border-navy/20 bg-white px-3 py-2 text-sm outline-none focus:border-blue"
+            >
+              <option value="">All outlets</option>
+              {outlets.map((outlet) => (
+                <option key={outlet.id} value={outlet.id}>
+                  {outlet.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="pb-2 text-xs text-navy/50">
+            {visiblePlans?.length ?? 0} of {plans.length} plan
+            {plans.length === 1 ? "" : "s"}
+          </p>
+        </div>
+      )}
 
       <div className="border border-navy/15 bg-white">
         {plans === null ? (
@@ -206,16 +176,12 @@ export default function PlansPage() {
           <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 p-10 text-center">
             <Package className="size-8 text-navy/30" aria-hidden="true" />
             <p className="font-display text-lg">No plans yet</p>
-            <p className="text-sm text-navy/60">
-              Create at least one plan before onboarding a client.
-            </p>
+            <p className="text-sm text-navy/60">Create at least one plan before onboarding a client.</p>
           </div>
         ) : visiblePlans !== null && visiblePlans.length === 0 ? (
           <div className="flex min-h-[160px] flex-col items-center justify-center gap-2 p-10 text-center">
             <Package className="size-8 text-navy/30" aria-hidden="true" />
-            <p className="text-sm text-navy/60">
-              No plans for this outlet yet.
-            </p>
+            <p className="text-sm text-navy/60">No plans for this outlet yet.</p>
           </div>
         ) : (
           <>
@@ -228,46 +194,23 @@ export default function PlansPage() {
                     <th className="px-4 py-3">Pricing</th>
                     <th className="px-4 py-3">Limits</th>
                     <th className="px-4 py-3">Status</th>
-                    {isSuperAdmin && (
-                      <th className="px-4 py-3 text-right">Actions</th>
-                    )}
+                    {isSuperAdmin && <th className="px-4 py-3 text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {(visiblePlans ?? []).map((plan) => (
-                    <tr
-                      key={plan.id}
-                      className="border-b border-navy/10 last:border-0 odd:bg-white even:bg-cream-dark/30"
-                    >
+                    <tr key={plan.id} className="border-b border-navy/10 last:border-0 odd:bg-white even:bg-cream-dark/30">
                       <td className="px-4 py-3">
                         <p className="font-bold">{plan.name}</p>
-                        {plan.supportLevel && (
-                          <p className="text-xs text-navy/50">
-                            {plan.supportLevel} support
-                          </p>
-                        )}
+                        {plan.supportLevel && <p className="text-xs text-navy/50">{plan.supportLevel} support</p>}
                       </td>
-                      {isSuperAdmin && (
-                        <td className="px-4 py-3 text-navy/60">
-                          {outletName(plan.outletId)}
-                        </td>
-                      )}
-                      <td className="px-4 py-3 text-xs text-navy/70">
-                        {planPricing(plan)}
-                      </td>
-                      <td className="px-4 py-3 text-xs text-navy/60 tabular-nums">
-                        {planLimits(plan)}
-                      </td>
+                      {isSuperAdmin && <td className="px-4 py-3 text-navy/60">{outletName(plan.outletId)}</td>}
+                      <td className="px-4 py-3 text-xs text-navy/70">{planPricing(plan)}</td>
+                      <td className="px-4 py-3 text-xs text-navy/60 tabular-nums">{planLimits(plan)}</td>
                       <td className="px-4 py-3">
-                        <Badge
-                          tone={plan.status === "ACTIVE" ? "green" : "muted"}
-                        >
-                          {plan.status}
-                        </Badge>
+                        <Badge tone={plan.status === "ACTIVE" ? "green" : "muted"}>{plan.status}</Badge>
                       </td>
-                      {isSuperAdmin && (
-                        <td className="px-4 py-3">{planActions(plan)}</td>
-                      )}
+                      {isSuperAdmin && <td className="px-4 py-3">{planActions(plan)}</td>}
                     </tr>
                   ))}
                 </tbody>
@@ -275,44 +218,26 @@ export default function PlansPage() {
             </div>
             <ul className="divide-y divide-navy/10 md:hidden">
               {(visiblePlans ?? []).map((plan) => (
-                <li
-                  key={plan.id}
-                  className="space-y-3 p-4 odd:bg-white even:bg-cream-dark/30"
-                >
+                <li key={plan.id} className="space-y-3 p-4 odd:bg-white even:bg-cream-dark/30">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-bold">{plan.name}</p>
                       <p className="text-xs text-navy/50">
-                        {[
-                          isSuperAdmin ? outletName(plan.outletId) : null,
-                          plan.supportLevel
-                            ? `${plan.supportLevel} support`
-                            : null,
-                        ]
+                        {[isSuperAdmin ? outletName(plan.outletId) : null, plan.supportLevel ? `${plan.supportLevel} support` : null]
                           .filter(Boolean)
                           .join(" · ")}
                       </p>
                     </div>
-                    <Badge tone={plan.status === "ACTIVE" ? "green" : "muted"}>
-                      {plan.status}
-                    </Badge>
+                    <Badge tone={plan.status === "ACTIVE" ? "green" : "muted"}>{plan.status}</Badge>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
-                      <p className="text-[10px] font-bold tracking-wide text-navy/40 uppercase">
-                        Pricing
-                      </p>
-                      <div className="mt-0.5 text-navy/70">
-                        {planPricing(plan)}
-                      </div>
+                      <p className="text-[10px] font-bold tracking-wide text-navy/40 uppercase">Pricing</p>
+                      <div className="mt-0.5 text-navy/70">{planPricing(plan)}</div>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold tracking-wide text-navy/40 uppercase">
-                        Limits
-                      </p>
-                      <p className="mt-0.5 text-navy/60 tabular-nums">
-                        {planLimits(plan)}
-                      </p>
+                      <p className="text-[10px] font-bold tracking-wide text-navy/40 uppercase">Limits</p>
+                      <p className="mt-0.5 text-navy/60 tabular-nums">{planLimits(plan)}</p>
                     </div>
                   </div>
                   {isSuperAdmin && planActions(plan)}
@@ -329,9 +254,7 @@ export default function PlansPage() {
         outlets={outlets}
         isSuperAdmin={isSuperAdmin}
         ownOutletName={account?.outlet?.name ?? null}
-        defaultOutletId={
-          isSuperAdmin ? (outlets[0]?.id ?? "") : (account?.outletId ?? "")
-        }
+        defaultOutletId={isSuperAdmin ? (outlets[0]?.id ?? "") : (account?.outletId ?? "")}
         onClose={() => setFormOpen(false)}
         onSaved={handleSaved}
       />
