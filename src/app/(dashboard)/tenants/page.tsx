@@ -10,7 +10,7 @@ import { api, ApiError } from "@/lib/api";
 import { formatDate } from "@/lib/dates";
 import { useAuth } from "@/lib/auth-context";
 import { formatCents } from "@/lib/money";
-import type { LicenseStatus, Outlet, Plan, Tenant } from "@/lib/types";
+import type { BillingCycle, LicenseStatus, Outlet, Plan, Tenant } from "@/lib/types";
 
 const LICENSE_TONE: Record<LicenseStatus, "blue" | "green" | "red" | "muted"> = {
   TRIAL: "blue",
@@ -18,6 +18,36 @@ const LICENSE_TONE: Record<LicenseStatus, "blue" | "green" | "red" | "muted"> = 
   SUSPENDED: "red",
   CANCELLED: "muted",
 };
+
+const CYCLE_FILTERS: { value: BillingCycle | "all"; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "MONTHLY", label: "Monthly" },
+  { value: "YEARLY", label: "Yearly" },
+  { value: "ONCE", label: "One-time" },
+];
+
+/** Same rule as the Billing tab: overdue once the next due date has passed. */
+function daysOverdue(tenant: Tenant, now = Date.now()): number | null {
+  const due = tenant.subscription?.nextDueDate;
+  if (!due) return null;
+  const ms = now - new Date(due).getTime();
+  return ms > 0 ? Math.floor(ms / 86_400_000) : null;
+}
+
+function NextDue({ tenant }: { tenant: Tenant }) {
+  const due = tenant.subscription?.nextDueDate;
+  const days = daysOverdue(tenant);
+  return (
+    <>
+      {due ? formatDate(due) : "—"}
+      {days !== null && (
+        <span className="mt-0.5 block font-bold text-red">
+          {days === 0 ? "Overdue today" : `${days} day${days === 1 ? "" : "s"} overdue`}
+        </span>
+      )}
+    </>
+  );
+}
 
 export default function TenantsPage() {
   const { account } = useAuth();
@@ -29,6 +59,8 @@ export default function TenantsPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [cycleFilter, setCycleFilter] = useState<BillingCycle | "all">("all");
+  const [overdueOnly, setOverdueOnly] = useState(false);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
@@ -63,11 +95,21 @@ export default function TenantsPage() {
   const filteredTenants = useMemo(() => {
     if (!tenants) return null;
     const term = searchTerm.trim().toLowerCase();
-    if (!term) return tenants;
-    return tenants.filter((tenant) =>
-      `${tenant.name} ${tenant.slug} ${tenant.contactEmail} ${tenant.ownerName ?? ""}`.toLowerCase().includes(term),
-    );
-  }, [tenants, searchTerm]);
+    return tenants.filter((tenant) => {
+      if (cycleFilter !== "all" && tenant.subscription?.billingCycle !== cycleFilter) return false;
+      if (overdueOnly && daysOverdue(tenant) === null) return false;
+      return !term || `${tenant.name} ${tenant.slug} ${tenant.contactEmail} ${tenant.ownerName ?? ""}`.toLowerCase().includes(term);
+    });
+  }, [tenants, searchTerm, cycleFilter, overdueOnly]);
+
+  // Chip counts follow the other filter, so "Overdue 3" means 3 among the cycle shown, and vice versa.
+  const cycleCount = (cycle: BillingCycle | "all") =>
+    (tenants ?? []).filter(
+      (tenant) => (cycle === "all" || tenant.subscription?.billingCycle === cycle) && (!overdueOnly || daysOverdue(tenant) !== null),
+    ).length;
+  const overdueCount = (tenants ?? []).filter(
+    (tenant) => daysOverdue(tenant) !== null && (cycleFilter === "all" || tenant.subscription?.billingCycle === cycleFilter),
+  ).length;
 
   function openCreateModal(): void {
     setEditingTenant(null);
@@ -160,18 +202,40 @@ export default function TenantsPage() {
         <div className="border border-red/30 bg-red/10 px-4 py-3 text-sm font-semibold text-red">{loadError ?? actionError}</div>
       )}
 
-      <label className="block max-w-sm">
-        <div className="relative">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-navy/40" aria-hidden="true" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search name, slug, or email"
-            className="w-full border border-navy/20 bg-white py-2.5 pr-3 pl-9 text-sm outline-none focus:border-blue"
-          />
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="block w-full sm:max-w-sm">
+          <div className="relative">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-navy/40" aria-hidden="true" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search name, slug, or email"
+              className="w-full border border-navy/20 bg-white py-2.5 pr-3 pl-9 text-sm outline-none focus:border-blue"
+            />
+          </div>
+        </label>
+        <div className="flex flex-wrap gap-1.5">
+          {CYCLE_FILTERS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setCycleFilter(option.value)}
+              className={`rounded-full border px-3 py-1.5 text-xs font-bold ${cycleFilter === option.value ? "border-navy bg-navy text-cream" : "border-navy/15 bg-white text-navy/70 hover:border-navy/40"}`}
+            >
+              {option.label} <span className="opacity-60">{cycleCount(option.value)}</span>
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => setOverdueOnly((prev) => !prev)}
+            aria-pressed={overdueOnly}
+            className={`rounded-full border px-3 py-1.5 text-xs font-bold ${overdueOnly ? "border-red bg-red text-white" : "border-red/40 bg-white text-red hover:border-red"}`}
+          >
+            Overdue <span className="opacity-70">{overdueCount}</span>
+          </button>
         </div>
-      </label>
+      </div>
 
       <div className="border border-navy/15 bg-white">
         {tenants === null ? (
@@ -182,7 +246,7 @@ export default function TenantsPage() {
           <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 p-10 text-center">
             <p className="font-display text-lg">{tenants.length === 0 ? "No tenants yet" : "No matches"}</p>
             <p className="text-sm text-navy/60">
-              {tenants.length === 0 ? "Create the first tenant to get started." : "Try a different search."}
+              {tenants.length === 0 ? "Create the first tenant to get started." : "Try a different search or filter."}
             </p>
           </div>
         ) : (
@@ -226,7 +290,7 @@ export default function TenantsPage() {
                         {tenant.license && <Badge tone={LICENSE_TONE[tenant.license.status]}>{tenant.license.status}</Badge>}
                       </td>
                       <td className="px-4 py-3 text-xs text-navy/60">
-                        {tenant.subscription?.nextDueDate ? formatDate(tenant.subscription.nextDueDate) : "—"}
+                        <NextDue tenant={tenant} />
                       </td>
                       <td className="px-4 py-3">{tenantActions(tenant)}</td>
                     </tr>
@@ -267,7 +331,7 @@ export default function TenantsPage() {
                     <div>
                       <p className="text-[10px] font-bold tracking-wide text-navy/40 uppercase">Next due</p>
                       <p className="mt-0.5 text-navy/60">
-                        {tenant.subscription?.nextDueDate ? formatDate(tenant.subscription.nextDueDate) : "—"}
+                        <NextDue tenant={tenant} />
                       </p>
                     </div>
                   </div>
