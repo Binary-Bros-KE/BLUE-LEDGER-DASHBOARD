@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DateInput } from "@/components/DateInput";
 import { Modal } from "@/components/Modal";
 import { api, ApiError } from "@/lib/api";
 import { fromCents, toCents } from "@/lib/money";
@@ -196,32 +197,17 @@ export function SubscriptionEditModal({
 
           <label className="block">
             <span className="text-[11px] font-bold tracking-wide text-navy/60 uppercase">Next Due Date</span>
-            <input
-              type="date"
-              value={form.nextDueDate}
-              onChange={(e) => updateField("nextDueDate", e.target.value)}
-              className="mt-1.5 w-full border border-navy/20 px-3 py-2 text-sm outline-none focus:border-blue"
-            />
+            <DateInput value={form.nextDueDate} onChange={(v) => updateField("nextDueDate", v)} />
           </label>
 
           <label className="block">
             <span className="text-[11px] font-bold tracking-wide text-navy/60 uppercase">Maintenance Expiry</span>
-            <input
-              type="date"
-              value={form.maintenanceExpiry}
-              onChange={(e) => updateField("maintenanceExpiry", e.target.value)}
-              className="mt-1.5 w-full border border-navy/20 px-3 py-2 text-sm outline-none focus:border-blue"
-            />
+            <DateInput value={form.maintenanceExpiry} onChange={(v) => updateField("maintenanceExpiry", v)} />
           </label>
 
           <label className="block">
             <span className="text-[11px] font-bold tracking-wide text-navy/60 uppercase">Support Expiry</span>
-            <input
-              type="date"
-              value={form.supportExpiry}
-              onChange={(e) => updateField("supportExpiry", e.target.value)}
-              className="mt-1.5 w-full border border-navy/20 px-3 py-2 text-sm outline-none focus:border-blue"
-            />
+            <DateInput value={form.supportExpiry} onChange={(v) => updateField("supportExpiry", v)} />
           </label>
         </div>
 

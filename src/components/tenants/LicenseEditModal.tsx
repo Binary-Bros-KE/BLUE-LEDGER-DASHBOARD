@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DateInput } from "@/components/DateInput";
 import { Modal } from "@/components/Modal";
 import { api, ApiError } from "@/lib/api";
 import type { License, LicenseStatus, SuspensionReason } from "@/lib/types";
@@ -106,12 +107,7 @@ export function LicenseEditModal({
 
         <label className="block">
           <span className="text-[11px] font-bold tracking-wide text-navy/60 uppercase">Trial Ends</span>
-          <input
-            type="date"
-            value={trialEndsAt}
-            onChange={(e) => setTrialEndsAt(e.target.value)}
-            className="mt-1.5 w-full border border-navy/20 px-3 py-2 text-sm outline-none focus:border-blue"
-          />
+          <DateInput value={trialEndsAt} onChange={(v) => setTrialEndsAt(v)} />
         </label>
 
         <div className="flex justify-end gap-3 border-t border-navy/10 pt-4">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { DateInput } from "@/components/DateInput";
 import { Modal } from "@/components/Modal";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -567,14 +568,18 @@ function Field({
   return (
     <label className="block">
       <span className="text-[11px] font-bold tracking-wide text-navy/60 uppercase">{label}</span>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-        disabled={disabled}
-        className="mt-1.5 w-full border border-navy/20 px-3 py-2 text-sm outline-none focus:border-blue disabled:cursor-not-allowed disabled:bg-cream-dark disabled:text-navy/50"
-      />
+      {type === "date" ? (
+        <DateInput value={value} onChange={onChange} required={required} disabled={disabled} />
+      ) : (
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          required={required}
+          disabled={disabled}
+          className="mt-1.5 w-full border border-navy/20 px-3 py-2 text-sm outline-none focus:border-blue disabled:cursor-not-allowed disabled:bg-cream-dark disabled:text-navy/50"
+        />
+      )}
       {error && <span className="mt-1 block text-[11px] font-semibold text-red">{error}</span>}
     </label>
   );

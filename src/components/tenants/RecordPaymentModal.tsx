@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { DateInput } from "@/components/DateInput";
 import { Modal } from "@/components/Modal";
 import { api, ApiError } from "@/lib/api";
 import { toCents } from "@/lib/money";
@@ -200,13 +201,7 @@ export function RecordPaymentModal({
 
         <label className="block">
           <span className="text-[11px] font-bold tracking-wide text-navy/60 uppercase">Payment Date</span>
-          <input
-            type="date"
-            value={paymentDate}
-            onChange={(e) => setPaymentDate(e.target.value)}
-            required
-            className="mt-1.5 w-full border border-navy/20 px-3 py-2 text-sm outline-none focus:border-blue"
-          />
+          <DateInput value={paymentDate} onChange={(v) => setPaymentDate(v)} required />
         </label>
 
         <label className="block">
