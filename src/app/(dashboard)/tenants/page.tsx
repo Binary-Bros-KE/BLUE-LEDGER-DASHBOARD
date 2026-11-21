@@ -19,12 +19,29 @@ const LICENSE_TONE: Record<LicenseStatus, "blue" | "green" | "red" | "muted"> = 
   CANCELLED: "muted",
 };
 
-const CYCLE_FILTERS: { value: BillingCycle | "all"; label: string }[] = [
-  { value: "all", label: "All" },
+type CycleFilter = BillingCycle | "all";
+type PaymentFilter = "all" | "overdue" | "current";
+type Filters = { cycle: CycleFilter; payment: PaymentFilter; outlet: string };
+
+const CYCLE_OPTIONS: { value: CycleFilter; label: string }[] = [
+  { value: "all", label: "All billing" },
   { value: "MONTHLY", label: "Monthly" },
   { value: "YEARLY", label: "Yearly" },
   { value: "ONCE", label: "One-time" },
 ];
+
+const PAYMENT_OPTIONS: { value: PaymentFilter; label: string }[] = [
+  { value: "all", label: "All payments" },
+  { value: "overdue", label: "Overdue" },
+  { value: "current", label: "Up to date" },
+];
+
+/** Every filter combines with the others — e.g. Yearly + Overdue + one outlet. */
+function matchesFilters(tenant: Tenant, filters: Filters): boolean {
+  if (filters.cycle !== "all" && tenant.subscription?.billingCycle !== filters.cycle) return false;
+  if (filters.payment !== "all" && (daysOverdue(tenant) !== null) !== (filters.payment === "overdue")) return false;
+  return !filters.outlet || tenant.outletId === filters.outlet;
+}
 
 /** Same rule as the Billing tab: overdue once the next due date has passed. */
 function daysOverdue(tenant: Tenant, now = Date.now()): number | null {
@@ -59,8 +76,7 @@ export default function TenantsPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [cycleFilter, setCycleFilter] = useState<BillingCycle | "all">("all");
-  const [overdueOnly, setOverdueOnly] = useState(false);
+  const [filters, setFilters] = useState<Filters>({ cycle: "all", payment: "all", outlet: "" });
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
@@ -96,20 +112,23 @@ export default function TenantsPage() {
     if (!tenants) return null;
     const term = searchTerm.trim().toLowerCase();
     return tenants.filter((tenant) => {
-      if (cycleFilter !== "all" && tenant.subscription?.billingCycle !== cycleFilter) return false;
-      if (overdueOnly && daysOverdue(tenant) === null) return false;
+      if (!matchesFilters(tenant, filters)) return false;
       return !term || `${tenant.name} ${tenant.slug} ${tenant.contactEmail} ${tenant.ownerName ?? ""}`.toLowerCase().includes(term);
     });
-  }, [tenants, searchTerm, cycleFilter, overdueOnly]);
+  }, [tenants, searchTerm, filters]);
 
-  // Chip counts follow the other filter, so "Overdue 3" means 3 among the cycle shown, and vice versa.
-  const cycleCount = (cycle: BillingCycle | "all") =>
-    (tenants ?? []).filter(
-      (tenant) => (cycle === "all" || tenant.subscription?.billingCycle === cycle) && (!overdueOnly || daysOverdue(tenant) !== null),
-    ).length;
-  const overdueCount = (tenants ?? []).filter(
-    (tenant) => daysOverdue(tenant) !== null && (cycleFilter === "all" || tenant.subscription?.billingCycle === cycleFilter),
-  ).length;
+  // How many tenants an option would show, given the OTHER filters as they are now.
+  const countWith = (change: Partial<Filters>) =>
+    (tenants ?? []).filter((tenant) => matchesFilters(tenant, { ...filters, ...change })).length;
+  const tenantOutlets = useMemo(
+    () =>
+      [...new Map((tenants ?? []).map((tenant) => [tenant.outletId, tenant.outlet.name])).entries()].sort((a, b) =>
+        a[1].localeCompare(b[1]),
+      ),
+    [tenants],
+  );
+  const filtersActive = filters.cycle !== "all" || filters.payment !== "all" || filters.outlet !== "";
+  const selectClass = "w-full border border-navy/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue sm:w-auto";
 
   function openCreateModal(): void {
     setEditingTenant(null);
@@ -215,26 +234,54 @@ export default function TenantsPage() {
             />
           </div>
         </label>
-        <div className="flex flex-wrap gap-1.5">
-          {CYCLE_FILTERS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setCycleFilter(option.value)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-bold ${cycleFilter === option.value ? "border-navy bg-navy text-cream" : "border-navy/15 bg-white text-navy/70 hover:border-navy/40"}`}
-            >
-              {option.label} <span className="opacity-60">{cycleCount(option.value)}</span>
-            </button>
+        <select
+          value={filters.cycle}
+          onChange={(e) => setFilters((prev) => ({ ...prev, cycle: e.target.value as CycleFilter }))}
+          aria-label="Billing cycle"
+          className={selectClass}
+        >
+          {CYCLE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label} ({countWith({ cycle: option.value })})
+            </option>
           ))}
+        </select>
+        <select
+          value={filters.payment}
+          onChange={(e) => setFilters((prev) => ({ ...prev, payment: e.target.value as PaymentFilter }))}
+          aria-label="Payment status"
+          className={`${selectClass} ${filters.payment === "overdue" ? "border-red text-red" : ""}`}
+        >
+          {PAYMENT_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label} ({countWith({ payment: option.value })})
+            </option>
+          ))}
+        </select>
+        {tenantOutlets.length > 1 && (
+          <select
+            value={filters.outlet}
+            onChange={(e) => setFilters((prev) => ({ ...prev, outlet: e.target.value }))}
+            aria-label="Outlet"
+            className={selectClass}
+          >
+            <option value="">All outlets ({countWith({ outlet: "" })})</option>
+            {tenantOutlets.map(([id, name]) => (
+              <option key={id} value={id}>
+                {name} ({countWith({ outlet: id })})
+              </option>
+            ))}
+          </select>
+        )}
+        {filtersActive && (
           <button
             type="button"
-            onClick={() => setOverdueOnly((prev) => !prev)}
-            aria-pressed={overdueOnly}
-            className={`rounded-full border px-3 py-1.5 text-xs font-bold ${overdueOnly ? "border-red bg-red text-white" : "border-red/40 bg-white text-red hover:border-red"}`}
+            onClick={() => setFilters({ cycle: "all", payment: "all", outlet: "" })}
+            className="text-xs font-bold text-blue hover:underline"
           >
-            Overdue <span className="opacity-70">{overdueCount}</span>
+            Clear filters
           </button>
-        </div>
+        )}
       </div>
 
       <div className="border border-navy/15 bg-white">
