@@ -35,9 +35,9 @@ export function ActivityDetailPanel({ tenantId, onClose }: { tenantId: string; o
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-navy/40" onClick={onClose}>
-      <div className="h-full w-full max-w-2xl overflow-y-auto bg-cream p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="h-full w-full max-w-2xl overflow-y-auto bg-cream p-4 shadow-2xl sm:p-6" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <p className="text-[11px] font-bold tracking-[0.16em] text-green uppercase">Activity</p>
             <h2 className="mt-1 font-display text-xl">{detail?.name ?? "Loading…"}</h2>
           </div>
@@ -48,7 +48,12 @@ export function ActivityDetailPanel({ tenantId, onClose }: { tenantId: string; o
             >
               Tenant page <ArrowUpRight className="size-3.5" aria-hidden="true" />
             </Link>
-            <button type="button" onClick={onClose} aria-label="Close" className="grid size-8 place-items-center text-navy/50 hover:bg-cream-dark hover:text-navy">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close"
+              className="grid size-8 place-items-center text-navy/50 hover:bg-cream-dark hover:text-navy"
+            >
               <X className="size-4" aria-hidden="true" />
             </button>
           </div>
@@ -80,42 +85,83 @@ export function ActivityDetailPanel({ tenantId, onClose }: { tenantId: string; o
             </section>
 
             <section className="border border-navy/15 bg-white">
-              <p className="border-b border-navy/10 px-4 py-3 text-[11px] font-bold tracking-wide text-navy/50 uppercase">Tills ({detail.devices.length})</p>
+              <p className="border-b border-navy/10 px-4 py-3 text-[11px] font-bold tracking-wide text-navy/50 uppercase">
+                Tills ({detail.devices.length})
+              </p>
               {detail.devices.length === 0 ? (
                 <p className="px-4 py-4 text-sm text-navy/50">No desktop has been activated yet.</p>
               ) : (
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-navy text-left text-[10px] font-bold tracking-wide text-cream uppercase">
-                      <th className="px-4 py-2">Device</th>
-                      <th className="px-4 py-2">Status</th>
-                      <th className="px-4 py-2">Signed in now</th>
-                      <th className="px-4 py-2">Version</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {detail.devices.map((device) => (
-                      <tr key={device.id} className="border-t border-navy/10">
-                        <td className="px-4 py-2.5">
-                          <p className="flex items-center gap-1.5 font-bold">
-                            <Laptop className="size-3.5 text-navy/40" aria-hidden="true" />
-                            {device.name}
-                          </p>
-                          <p className="text-[11px] text-navy/50">{device.status === "ACTIVE" ? "" : `${device.status.toLowerCase()} · `}since {formatDate(device.registeredAt)}</p>
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <StatePill state={device.state} />
-                          <p className="mt-0.5 text-[11px] text-navy/50">{timeAgo(device.lastSeenAt)}</p>
-                        </td>
-                        <td className="px-4 py-2.5 text-navy/70">{device.currentEmployeeName ?? <span className="text-navy/30">—</span>}</td>
-                        <td className="px-4 py-2.5">
-                          <span className={device.outdated ? "font-bold text-red" : "text-navy/70"}>{device.appVersion ?? "unknown"}</span>
-                          {device.outdated && <p className="text-[11px] text-red">update to {detail.latestDesktopVersion}</p>}
-                        </td>
+                <>
+                  <table className="hidden w-full text-sm md:table">
+                    <thead>
+                      <tr className="bg-navy text-left text-[10px] font-bold tracking-wide text-cream uppercase">
+                        <th className="px-4 py-2">Device</th>
+                        <th className="px-4 py-2">Status</th>
+                        <th className="px-4 py-2">Signed in now</th>
+                        <th className="px-4 py-2">Version</th>
                       </tr>
+                    </thead>
+                    <tbody>
+                      {detail.devices.map((device) => (
+                        <tr key={device.id} className="border-t border-navy/10">
+                          <td className="px-4 py-2.5">
+                            <p className="flex items-center gap-1.5 font-bold">
+                              <Laptop className="size-3.5 text-navy/40" aria-hidden="true" />
+                              {device.name}
+                            </p>
+                            <p className="text-[11px] text-navy/50">
+                              {device.status === "ACTIVE" ? "" : `${device.status.toLowerCase()} · `}since {formatDate(device.registeredAt)}
+                            </p>
+                          </td>
+                          <td className="px-4 py-2.5">
+                            <StatePill state={device.state} />
+                            <p className="mt-0.5 text-[11px] text-navy/50">{timeAgo(device.lastSeenAt)}</p>
+                          </td>
+                          <td className="px-4 py-2.5 text-navy/70">
+                            {device.currentEmployeeName ?? <span className="text-navy/30">—</span>}
+                          </td>
+                          <td className="px-4 py-2.5">
+                            <span className={device.outdated ? "font-bold text-red" : "text-navy/70"}>
+                              {device.appVersion ?? "unknown"}
+                            </span>
+                            {device.outdated && <p className="text-[11px] text-red">update to {detail.latestDesktopVersion}</p>}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <ul className="divide-y divide-navy/10 md:hidden">
+                    {detail.devices.map((device) => (
+                      <li key={device.id} className="space-y-2 px-4 py-3 text-sm">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="flex items-center gap-1.5 truncate font-bold">
+                              <Laptop className="size-3.5 flex-none text-navy/40" aria-hidden="true" />
+                              {device.name}
+                            </p>
+                            <p className="text-[11px] text-navy/50">
+                              {device.status === "ACTIVE" ? "" : `${device.status.toLowerCase()} · `}since {formatDate(device.registeredAt)}
+                            </p>
+                          </div>
+                          <div className="flex-none text-right">
+                            <StatePill state={device.state} />
+                            <p className="mt-0.5 text-[11px] text-navy/50">{timeAgo(device.lastSeenAt)}</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 text-xs">
+                          <p className="text-navy/70">
+                            <span className="text-navy/40">Signed in: </span>
+                            {device.currentEmployeeName ?? "—"}
+                          </p>
+                          <p className={device.outdated ? "font-bold text-red" : "text-navy/70"}>
+                            v{device.appVersion ?? "unknown"}
+                            {device.outdated && ` · update to ${detail.latestDesktopVersion}`}
+                          </p>
+                        </div>
+                      </li>
                     ))}
-                  </tbody>
-                </table>
+                  </ul>
+                </>
               )}
             </section>
 
@@ -126,51 +172,87 @@ export function ActivityDetailPanel({ tenantId, onClose }: { tenantId: string; o
               {detail.users.length === 0 ? (
                 <p className="px-4 py-4 text-sm text-navy/50">No employees yet.</p>
               ) : (
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-navy text-left text-[10px] font-bold tracking-wide text-cream uppercase">
-                      <th className="px-4 py-2">Person</th>
-                      <th className="px-4 py-2">Last active</th>
-                      <th className="px-4 py-2">Desktop / Phone</th>
-                      <th className="px-4 py-2 text-right">Sales 30d</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <>
+                  <table className="hidden w-full text-sm md:table">
+                    <thead>
+                      <tr className="bg-navy text-left text-[10px] font-bold tracking-wide text-cream uppercase">
+                        <th className="px-4 py-2">Person</th>
+                        <th className="px-4 py-2">Last active</th>
+                        <th className="px-4 py-2">Desktop / Phone</th>
+                        <th className="px-4 py-2 text-right">Sales 30d</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {detail.users.map((user) => (
+                        <tr key={user.id} className={`border-t border-navy/10 ${user.status === "active" ? "" : "opacity-50"}`}>
+                          <td className="px-4 py-2.5">
+                            <p className="font-bold">{user.name}</p>
+                            <p className="text-[11px] text-navy/50">
+                              {user.roleName ?? "No role"} · {user.employeeCode}
+                              {user.status !== "active" ? ` · ${user.status}` : ""}
+                            </p>
+                          </td>
+                          <td className="px-4 py-2.5">
+                            <StatePill state={user.state} />
+                            <p className="mt-0.5 text-[11px] text-navy/50">{timeAgo(user.lastSeenAt)}</p>
+                          </td>
+                          <td className="px-4 py-2.5 text-[11px] text-navy/60">
+                            <p className="flex items-center gap-1">
+                              <Laptop className="size-3 text-navy/40" aria-hidden="true" />
+                              {timeAgo(user.lastDesktopSeenAt)}
+                            </p>
+                            <p className="flex items-center gap-1">
+                              <Smartphone className="size-3 text-navy/40" aria-hidden="true" />
+                              {timeAgo(user.lastMobileSeenAt)}
+                            </p>
+                          </td>
+                          <td className="px-4 py-2.5 text-right">
+                            <p className="font-bold tabular-nums">{user.sales30d}</p>
+                            <p className="text-[11px] text-navy/50">
+                              {user.sales30d > 0 ? formatCents(user.sales30dValueCents) : `last: ${timeAgo(user.lastSaleAt)}`}
+                            </p>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <ul className="divide-y divide-navy/10 md:hidden">
                     {detail.users.map((user) => (
-                      <tr key={user.id} className={`border-t border-navy/10 ${user.status === "active" ? "" : "opacity-50"}`}>
-                        <td className="px-4 py-2.5">
-                          <p className="font-bold">{user.name}</p>
-                          <p className="text-[11px] text-navy/50">
-                            {user.roleName ?? "No role"} · {user.employeeCode}
-                            {user.status !== "active" ? ` · ${user.status}` : ""}
-                          </p>
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <StatePill state={user.state} />
-                          <p className="mt-0.5 text-[11px] text-navy/50">{timeAgo(user.lastSeenAt)}</p>
-                        </td>
-                        <td className="px-4 py-2.5 text-[11px] text-navy/60">
+                      <li key={user.id} className={`space-y-2 px-4 py-3 text-sm ${user.status === "active" ? "" : "opacity-50"}`}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate font-bold">{user.name}</p>
+                            <p className="truncate text-[11px] text-navy/50">
+                              {user.roleName ?? "No role"} · {user.employeeCode}
+                              {user.status !== "active" ? ` · ${user.status}` : ""}
+                            </p>
+                          </div>
+                          <div className="flex-none text-right">
+                            <StatePill state={user.state} />
+                            <p className="mt-0.5 text-[11px] text-navy/50">{timeAgo(user.lastSeenAt)}</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-[11px] text-navy/60">
                           <p className="flex items-center gap-1">
                             <Laptop className="size-3 text-navy/40" aria-hidden="true" />
                             {timeAgo(user.lastDesktopSeenAt)}
-                          </p>
-                          <p className="flex items-center gap-1">
-                            <Smartphone className="size-3 text-navy/40" aria-hidden="true" />
+                            <Smartphone className="ml-2 size-3 text-navy/40" aria-hidden="true" />
                             {timeAgo(user.lastMobileSeenAt)}
                           </p>
-                        </td>
-                        <td className="px-4 py-2.5 text-right">
-                          <p className="font-bold tabular-nums">{user.sales30d}</p>
-                          <p className="text-[11px] text-navy/50">{user.sales30d > 0 ? formatCents(user.sales30dValueCents) : `last: ${timeAgo(user.lastSaleAt)}`}</p>
-                        </td>
-                      </tr>
+                          <p>
+                            <span className="font-bold text-navy tabular-nums">{user.sales30d}</span> sales 30d
+                            {user.sales30d > 0 ? ` · ${formatCents(user.sales30dValueCents)}` : ""}
+                          </p>
+                        </div>
+                      </li>
                     ))}
-                  </tbody>
-                </table>
+                  </ul>
+                </>
               )}
             </section>
             <p className="text-[11px] text-navy/40">
-              Desktop last-seen and &ldquo;signed in now&rdquo; come from desktop 2.0.3 and later; older versions still show device and sales activity.
+              Desktop last-seen and &ldquo;signed in now&rdquo; come from desktop 2.0.3 and later; older versions still show device and
+              sales activity.
             </p>
           </div>
         )}
