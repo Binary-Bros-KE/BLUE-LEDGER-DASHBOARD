@@ -40,6 +40,7 @@ function toFormState(subscription: Subscription): FormState {
 export function SubscriptionEditModal({
   open,
   tenantId,
+  tenantOutletId,
   subscription,
   plans,
   onClose,
@@ -47,6 +48,8 @@ export function SubscriptionEditModal({
 }: {
   open: boolean;
   tenantId: string;
+  /** The TENANT's outlet — its current plan can belong to another one if the tenant was moved. */
+  tenantOutletId: string;
   subscription: Subscription;
   plans: Plan[];
   onClose: () => void;
@@ -113,7 +116,11 @@ export function SubscriptionEditModal({
     }
   }
 
-  const plansForOutlet = plans.filter((plan) => plan.outletId === subscription.plan.outletId);
+  // Plans from the tenant's own outlet. A current plan from another outlet (the tenant was moved)
+  // stays listed so the form can still save other changes, but is flagged so it gets replaced.
+  const planFromOtherOutlet = subscription.plan.outletId !== tenantOutletId;
+  const plansForOutlet = plans.filter((plan) => plan.outletId === tenantOutletId);
+  const planOptions = planFromOtherOutlet ? [subscription.plan, ...plansForOutlet] : plansForOutlet;
 
   return (
     <Modal open={open} onClose={onClose} title="Edit Subscription" widthClassName="max-w-lg">
@@ -128,12 +135,18 @@ export function SubscriptionEditModal({
               onChange={(e) => updateField("planId", e.target.value)}
               className="mt-1.5 w-full border border-navy/20 bg-white px-3 py-2 text-sm outline-none focus:border-blue"
             >
-              {plansForOutlet.map((plan) => (
+              {planOptions.map((plan) => (
                 <option key={plan.id} value={plan.id}>
                   {plan.name}
+                  {planFromOtherOutlet && plan.id === subscription.plan.id ? " (another outlet's plan)" : ""}
                 </option>
               ))}
             </select>
+            {planFromOtherOutlet && form.planId === subscription.plan.id && (
+              <span className="mt-1 block text-[11px] font-semibold text-gold-text">
+                This plan belongs to another outlet — the tenant was probably moved. Pick one of this outlet's plans.
+              </span>
+            )}
           </label>
 
           <label className="block">

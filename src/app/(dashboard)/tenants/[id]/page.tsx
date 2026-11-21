@@ -703,6 +703,7 @@ export default function TenantDetailPage() {
         <SubscriptionEditModal
           open={subscriptionEditOpen}
           tenantId={tenant.id}
+          tenantOutletId={tenant.outletId}
           subscription={subscription}
           plans={plans}
           onClose={() => setSubscriptionEditOpen(false)}
