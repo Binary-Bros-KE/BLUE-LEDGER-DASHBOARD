@@ -23,6 +23,9 @@ export default function PlansPage() {
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
   const [deletingPlan, setDeletingPlan] = useState<Plan | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  // "" = every outlet. Super Admins only — everyone else only ever sees their own outlet's plans.
+  const [outletFilter, setOutletFilter] = useState("");
+  const visiblePlans = plans && outletFilter ? plans.filter((plan) => plan.outletId === outletFilter) : plans;
 
   const loadAll = useCallback(async () => {
     setLoadError(null);
@@ -94,6 +97,29 @@ export default function PlansPage() {
         <div className="border border-red/30 bg-red/10 px-4 py-3 text-sm font-semibold text-red">{loadError ?? actionError}</div>
       )}
 
+      {isSuperAdmin && outlets.length > 1 && plans !== null && plans.length > 0 && (
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="block">
+            <span className="text-[11px] font-bold tracking-wide text-navy/60 uppercase">Outlet</span>
+            <select
+              value={outletFilter}
+              onChange={(e) => setOutletFilter(e.target.value)}
+              className="mt-1.5 block w-64 border border-navy/20 bg-white px-3 py-2 text-sm outline-none focus:border-blue"
+            >
+              <option value="">All outlets</option>
+              {outlets.map((outlet) => (
+                <option key={outlet.id} value={outlet.id}>
+                  {outlet.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="pb-2 text-xs text-navy/50">
+            {visiblePlans?.length ?? 0} of {plans.length} plan{plans.length === 1 ? "" : "s"}
+          </p>
+        </div>
+      )}
+
       <div className="border border-navy/15 bg-white">
         {plans === null ? (
           <div className="flex min-h-[240px] items-center justify-center text-navy/40">
@@ -105,11 +131,16 @@ export default function PlansPage() {
             <p className="font-display text-lg">No plans yet</p>
             <p className="text-sm text-navy/60">Create at least one plan before onboarding a client.</p>
           </div>
+        ) : visiblePlans !== null && visiblePlans.length === 0 ? (
+          <div className="flex min-h-[160px] flex-col items-center justify-center gap-2 p-10 text-center">
+            <Package className="size-8 text-navy/30" aria-hidden="true" />
+            <p className="text-sm text-navy/60">No plans for this outlet yet.</p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px] border-collapse text-sm">
               <thead>
-                <tr className="border-b border-navy/15 bg-cream-dark text-left text-[11px] font-bold tracking-wide text-navy/60 uppercase">
+                <tr className="bg-navy text-left text-[11px] font-bold tracking-wide text-cream uppercase">
                   <th className="px-4 py-3">Plan</th>
                   {isSuperAdmin && <th className="px-4 py-3">Outlet</th>}
                   <th className="px-4 py-3">Pricing</th>
@@ -119,7 +150,7 @@ export default function PlansPage() {
                 </tr>
               </thead>
               <tbody>
-                {plans.map((plan) => (
+                {(visiblePlans ?? []).map((plan) => (
                   <tr key={plan.id} className="border-b border-navy/10 last:border-0 odd:bg-white even:bg-cream-dark/30">
                     <td className="px-4 py-3">
                       <p className="font-bold">{plan.name}</p>
