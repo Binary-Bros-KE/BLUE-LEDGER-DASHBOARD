@@ -1,5 +1,7 @@
 import type {
   Account,
+  ActivityOverview,
+  TenantActivityDetail,
   AccountCreateInput,
   AccountUpdateInput,
   BillingMpesaStatusResult,
@@ -112,6 +114,8 @@ export const api = {
   me: () => request<Account>("/auth/me"),
 
   listTenants: () => request<Tenant[]>("/tenants"),
+  getActivity: () => request<ActivityOverview>("/activity"),
+  getTenantActivity: (tenantId: string) => request<TenantActivityDetail>(`/activity/tenants/${tenantId}`),
   getTenant: (id: string) => request<Tenant>(`/tenants/${id}`),
   createTenant: (input: TenantCreateInput) =>
     request<Tenant>("/tenants", { method: "POST", body: JSON.stringify(input) }),

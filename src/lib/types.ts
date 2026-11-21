@@ -550,3 +550,58 @@ export type ShopUpdateInput = Partial<{
 
 // PublishableProduct was removed with the dashboard's bulk-publish modal — the shop owner now
 // curates their online catalogue from the desktop POS "Online Store" tab.
+
+/** SERVER's activity-service.ts — the Activity tab. */
+export type ActivityState = "online" | "today" | "week" | "idle" | "dormant" | "never";
+
+export type TenantActivitySummary = {
+  tenantId: string;
+  name: string;
+  outletId: string;
+  outletName: string;
+  licenseStatus: string | null;
+  planName: string | null;
+  createdAt: string;
+  state: ActivityState;
+  lastSeenAt: string | null;
+  devices: { total: number; online: number; outdated: number; versions: Array<{ version: string; count: number }> };
+  users: { total: number; active7d: number; onDesktopNow: number; onPhone7d: number };
+  sales: { today: number; last7: number; prev7: number; last7ValueCents: number; lastSaleAt: string | null; daily14: number[] };
+};
+
+export type ActivityOverview = { generatedAt: string; latestDesktopVersion: string | null; tenants: TenantActivitySummary[] };
+
+export type TenantActivityDetail = {
+  tenantId: string;
+  name: string;
+  timezone: string;
+  latestDesktopVersion: string | null;
+  devices: Array<{
+    id: string;
+    name: string;
+    type: string;
+    appVersion: string | null;
+    outdated: boolean;
+    lastSeenAt: string | null;
+    state: ActivityState;
+    currentEmployeeName: string | null;
+    status: string;
+    registeredAt: string;
+  }>;
+  users: Array<{
+    id: string;
+    name: string;
+    employeeCode: string;
+    roleName: string | null;
+    status: string;
+    lastDesktopSeenAt: string | null;
+    lastMobileSeenAt: string | null;
+    lastLoginAt: string | null;
+    lastSaleAt: string | null;
+    lastSeenAt: string | null;
+    state: ActivityState;
+    sales30d: number;
+    sales30dValueCents: number;
+  }>;
+  daily30: Array<{ day: string; count: number; valueCents: number }>;
+};
