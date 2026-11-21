@@ -611,7 +611,8 @@ export default function TenantDetailPage() {
 
         {(subscription?.billingCycle === "MONTHLY" || subscription?.billingCycle === "YEARLY") && (
           <div className="mt-5">
-            <PaymentCalendar tenantId={tenant.id} onPaid={() => void loadAll()} />
+            {/* Keyed on the payment count so it refetches after a payment or a waiver lands. */}
+            <PaymentCalendar key={payments.length} tenantId={tenant.id} onPaid={() => void loadAll()} />
           </div>
         )}
 

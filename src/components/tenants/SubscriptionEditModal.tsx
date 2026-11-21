@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Modal } from "@/components/Modal";
 import { api, ApiError } from "@/lib/api";
 import { fromCents, toCents } from "@/lib/money";
-import type { BillingCycle, Plan, Subscription, SubscriptionBillingStatus, SubscriptionType } from "@/lib/types";
+import type { BillingCycle, BillingPeriodEntry, Plan, Subscription, SubscriptionBillingStatus, SubscriptionType } from "@/lib/types";
 
 type FormState = {
   planId: string;
@@ -54,13 +54,34 @@ export function SubscriptionEditModal({
   const [form, setForm] = useState<FormState>(() => toFormState(subscription));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [schedule, setSchedule] = useState<BillingPeriodEntry[]>([]);
+  const [waive, setWaive] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setForm(toFormState(subscription));
     setError(null);
-  }, [open, subscription]);
+    setWaive(false);
+    let cancelled = false;
+    api
+      .getPaymentSchedule(tenantId)
+      .then((result) => {
+        if (!cancelled) setSchedule(result.periods);
+      })
+      .catch(() => {
+        // The server still refuses a due date that skips unpaid periods; this only previews them.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, subscription, tenantId]);
+
+  // Unpaid periods before the chosen due date's own period — saving waives them (KES 0 "WAIVED"
+  // payments), since the calendar and Pay Now always count from the start, never from this date.
+  const cutoff =
+    form.billingCycle === "MONTHLY" ? form.nextDueDate.slice(0, 7) : form.billingCycle === "YEARLY" ? form.nextDueDate.slice(0, 4) : "";
+  const skipped = cutoff ? schedule.filter((entry) => entry.status !== "paid" && entry.key < cutoff) : [];
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]): void {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -81,6 +102,7 @@ export function SubscriptionEditModal({
         nextDueDate: form.nextDueDate || null,
         maintenanceExpiry: form.maintenanceExpiry || null,
         supportExpiry: form.supportExpiry || null,
+        waiveUnpaidBefore: skipped.length > 0 && waive,
       });
       onSaved();
     } catch (err) {
@@ -203,6 +225,20 @@ export function SubscriptionEditModal({
           </label>
         </div>
 
+        {skipped.length > 0 && (
+          <div className="border border-gold bg-gold/10 px-4 py-3 text-sm">
+            <p className="font-bold text-navy">This due date skips unpaid {skipped.map((entry) => entry.label).join(", ")}.</p>
+            <p className="mt-1 text-xs text-navy/70">
+              Billing counts from the start of the subscription, so skipped periods stay owed unless they&rsquo;re waived. Waiving records
+              each one in Payment History as a KES 0 payment marked WAIVED.
+            </p>
+            <label className="mt-2 flex items-center gap-2 text-xs font-bold text-navy">
+              <input type="checkbox" checked={waive} onChange={(e) => setWaive(e.target.checked)} className="size-4 accent-blue" />
+              Waive {skipped.length === 1 ? skipped[0].label : `these ${skipped.length} periods`}
+            </label>
+          </div>
+        )}
+
         <div className="flex justify-end gap-3 border-t border-navy/10 pt-4">
           <button
             type="button"
@@ -213,7 +249,7 @@ export function SubscriptionEditModal({
           </button>
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || (skipped.length > 0 && !waive)}
             className="bg-blue px-5 py-2 text-xs font-bold tracking-wide text-white transition hover:bg-blue-press disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? "SAVING…" : "SAVE CHANGES"}

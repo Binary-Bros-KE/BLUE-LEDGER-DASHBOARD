@@ -208,6 +208,8 @@ export type SubscriptionUpdateInput = Partial<{
   maintenanceExpiry: string | null;
   supportExpiry: string | null;
   supportStatus: SupportStatus;
+  /** Settle unpaid periods the new nextDueDate skips as KES 0 "WAIVED" payments. */
+  waiveUnpaidBefore: boolean;
 }>;
 
 export type SubscriptionPayment = {
